@@ -8,8 +8,7 @@ const ShopApplicationWrapper = () => {
 
   const isLoading = useSelector((state)=> state?.commonState?.loading);
   return (
-    <div>
-        <Navigation />
+    <div className='overflow-x-hidden'>
         <Outlet />
         {isLoading && <Spinner />}
     </div>

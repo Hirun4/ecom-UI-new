@@ -29,6 +29,10 @@ export const router = createBrowserRouter([
             path:"/",
             element:<Shop />
         },
+        // {
+        //   path:"/product",
+
+        // },
         {
             path:"/women",
             element:<ProductListPage categoryType={'WOMEN'}/>,
@@ -38,8 +42,7 @@ export const router = createBrowserRouter([
           element:<ProductListPage categoryType={'MEN'}/>,
         },
         {
-          path:"/product/:slug",
-          loader: loadProductBySlug,
+          path:"/product",
           element: <ProductDetails />
         },
         {

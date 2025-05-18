@@ -1,21 +1,61 @@
-import React from 'react'
-import ArrowIcon from '../common/ArrowIcon'
+import React from "react";
+import { useNavigate } from "react-router-dom";
 
+const Card = ({
+  key,
+  id,
+  imagePath,
+  title,
+  category,
+  Price,
+  height,
+  width,
+  inStock,
+}) => {
+  const navigate=useNavigate();
 
-const Card = ({imagePath,title,description,actionArrow,height,width}) => {
+  const handlenavigate=()=>{
+    navigate(`/product`,{ state: { id } });
+
+  }
+
   return (
-    <div className='flex  flex-col p-6'>
-        <img className={`h-[${height? height:'220px'}] max-h-[${height? height:'220px'}] w-[${width? width:'200px'}] max-w-[${width? width:'220px'}]
-         border rounded-lg hover:scale-105 cursor-pointer`} width={width??"200px"} height={height?? "220px"} src={imagePath} alt='Jeans'/>
-         <div className='flex justify-between items-center'>
-          <div className='flex flex-col'>
-          <p className='text-[16px] p-1'>{title}</p>
-          {description && <p className='text-[12px] px-1 text-gray-600'>{description}</p>}
+    <div onClick={handlenavigate} className="flex flex-col bg-white border cursor-pointer hover:scale-105 transition duration-300 h-fit border-[#e1e1e1] w-[220px] rounded-lg overflow-hidden">
+      <img
+        className=""
+        width={width ?? "220px"}
+        height={height ?? "220px"}
+        src={imagePath}
+        alt="Jeans"
+      />
+      <div className="flex justify-between items-center p-1">
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-col">
+            <p className="text-[16px] font-medium">{title}</p>
+            {category && (
+              <p className="text-[12px]  text-gray-600">{category}</p>
+            )}
+            <div>
+              {inStock == "In Stock" ? (
+                <p className="inline-block bg-green-100 text-green-800 text-xs font-semibold px-2.5 py-0.5 rounded">
+                  In Stock
+                </p>
+              ) : (
+                <p className="inline-block bg-red-100 text-red-800 text-xs font-semibold px-2.5 py-0.5 rounded">
+                  Out of Stock
+                </p>
+              )}
+            </div>
           </div>
-          {actionArrow && <span className='cursor-pointer pr-2 items-center'><ArrowIcon /></span>}
+          {Price && (
+            <span className="text-[16px] font-bold text-[#03045E]">
+              LKR {Price}.00
+            </span>
+          )}
         </div>
+      </div>
     </div>
-  )
-}
+  );
+};
 
-export default Card
+export default Card;

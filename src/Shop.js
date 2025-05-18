@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
 import HeroSection from './components/HeroSection/HeroSection'
-import NewArrivals from './components/Sections/NewArrivals'
+import NewArrivals from './components/Sections/TodayDeals'
 import Category from './components/Sections/Categories/Category'
 import content from './data/content.json';
 import Footer from './components/Footer/Footer'
@@ -8,6 +8,9 @@ import { fetchCategories } from './api/fetchCategories';
 import { useDispatch } from 'react-redux';
 import { loadCategories } from './store/features/category';
 import { setLoading } from './store/features/common';
+import Navigation from './components/Navigation/Navigation';
+import HomeCard from './components/HomeCard';
+import TodayDeals from './components/Sections/TodayDeals';
 
 const Shop = () => {
 
@@ -28,9 +31,12 @@ const Shop = () => {
 
   return (
     <>
+    
+      {/* <Navigation /> */}
       <HeroSection />
-      <NewArrivals />
-      {content?.pages?.shop?.sections && content?.pages?.shop?.sections?.map((item, index) => <Category key={item?.title+index} {...item} />)}
+      <HomeCard/>
+      <TodayDeals />
+      <Category />
       <Footer content={content?.footer}/>
     </>
   )
