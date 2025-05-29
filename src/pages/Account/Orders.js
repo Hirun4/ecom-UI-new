@@ -10,7 +10,12 @@ import { getStepCount } from '../../utils/order-util';
 const Orders = () => {
   const userInfo = useSelector(selectUserInfo);
   const dispatch = useDispatch();
-  const [selectedFilter, setSelectedFilter] = useState('ACTIVE');
+
+  // Load selected filter from localStorage or default to 'SHIPPED'
+  const [selectedFilter, setSelectedFilter] = useState(() => {
+    return localStorage.getItem('orderFilter') || 'Shipped';
+  });
+  
   const [orders, setOrders] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState('');
 
@@ -20,13 +25,13 @@ const Orders = () => {
     dispatch(setLoading(true));
     fetchOrderAPI(userInfo.phoneNumber)
       .then(res => {
-        console.log('Raw orders:', res);
         if (Array.isArray(res)) {
           const displayOrders = res.map(order => ({
             id: order?.order_id,
             orderDate: order?.created_at,
             orderStatus: order?.status,
-            status: (order?.status === 'PENDING' || order?.status === 'IN_PROGRESS' || order?.status === 'SHIPPED') ? 'ACTIVE'
+            status: (order?.status === 'PENDING' || order?.status === 'IN_PROGRESS' || order?.status === 'SHIPPED')
+                   ? 'ACTIVE'
                    : order?.status === 'DELIVERED' ? 'COMPLETED' : order?.status,
             items: order?.orderItems?.map(orderItem => ({
               id: orderItem?.item_id,
@@ -41,7 +46,6 @@ const Orders = () => {
             deliveryFee: order?.delivery_fee,
             address: order?.address
           }));
-          console.log('Processed orders:', displayOrders);
           setOrders(displayOrders);
         }
       })
@@ -60,6 +64,7 @@ const Orders = () => {
   const handleOnChange = useCallback((evt) => {
     const value = evt?.target?.value;
     setSelectedFilter(value);
+    localStorage.setItem('orderFilter', value);
   }, []);
 
   const onCancelOrder = useCallback((id) => {
@@ -76,7 +81,7 @@ const Orders = () => {
       });
   }, [dispatch, fetchOrders]);
 
-  const filteredOrders = orders.filter(order => order?.status === selectedFilter);
+  const filteredOrders = orders.filter(order => order?.orderStatus === selectedFilter);
 
   return (
     <div className='p-4'>
@@ -90,12 +95,11 @@ const Orders = () => {
           >
             <option value='Shipped'>Shipped</option>
             <option value='Delivered'>Delivered</option>
-            
           </select>
         </div>
 
         {filteredOrders.length > 0 ? (
-          orders.map((order, index) => (
+          filteredOrders.map((order, index) => (
             <div key={order.id || index} className='mb-8 bg-white rounded-lg shadow'>
               <div className='bg-gray-100 p-4 rounded-t-lg'>
                 <div className='flex justify-between items-center'>
