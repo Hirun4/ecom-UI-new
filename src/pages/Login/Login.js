@@ -1,11 +1,15 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useContext, useState } from "react";
 import GoogleSignIn from "../../components/Buttons/GoogleSignIn";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { setLoading } from "../../store/features/common";
 import { loginAPI } from "../../api/authentication";
 import { saveToken } from "../../utils/jwt-helper";
+import { AuthContext } from "../../context/authContext";
 const Login = () => {
+  const {login,authState} = useContext(AuthContext)
+  // console.log("jgjhv");
+  
   const [values, setValues] = useState({
     userName: "",
     password: "",
@@ -17,17 +21,20 @@ const Login = () => {
   const onSubmit = useCallback(
     (e) => {
       e.preventDefault();
-      console.log("Form submitted with values:", values);
+      // console.log("Form submitted with values:", values);
       setError("");
       dispatch(setLoading(true));
-      console.log("Loading state set to true");
+      // console.log("Loading state set to true");
       loginAPI(values)
         .then((res) => {
-          console.log("API response:", res);
+          // console.log("API response:", res);
           if (res?.token) {
-            console.log("Token received:", res.token);
             saveToken(res?.token);
             navigate("/");
+            login(res.token,res.user);
+            // console.log(authState.user);
+            
+
           } else {
             console.log("No token received");
             setError("Something went wrong!");

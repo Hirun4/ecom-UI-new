@@ -16,6 +16,10 @@ export const placeOrderAPI = async (data)=>{
     }
 }
 
+
+
+
+
 export const confirmPaymentAPI = async (data)=>{
     const url = API_BASE_URL + '/api/order/update-payment';
     try{

@@ -55,17 +55,22 @@ export const deleteAddressAPI = async (id) => {
   }
 };
 
-export const fetchOrderAPI = async () => {
-  const url = API_BASE_URL + `/api/order/user`;
-  try {
-    const response = await axios(url, {
-      method: "GET",
-      headers: getHeaders(),
-    });
-    return response?.data;
-  } catch (err) {
-    throw new Error(err);
-  }
+export const fetchOrderAPI = async (phone) => {
+    console.log('[fetchOrderAPI] Function called');
+    const url = `${API_BASE_URL}/api/order1/orders/by-phone/${phone}`;
+    console.log('[fetchOrderAPI] Fetching orders for phone:', phone);
+    console.log('[fetchOrderAPI] URL:', url);
+
+    try {
+        const response = await axios.get(url, {
+            headers: getHeaders()
+        });
+        console.log('[fetchOrderAPI] Response data:', response?.data);
+        return response?.data;
+    } catch (err) {
+        console.error('[fetchOrderAPI] Error fetching orders:', err);
+        throw new Error(err);
+    }
 };
 
 export const cancelOrderAPI = async (id) => {

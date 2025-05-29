@@ -8,15 +8,18 @@ import { router } from './routes';
 import { Provider } from 'react-redux';
 import store from './store/store';
 import ShopApplicationWrapper from './pages/ShopApplicationWrapper';
+import { AuthProvider } from './context/authContext';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
     <Provider store={store}>
+        <AuthProvider>
     <RouterProvider router={router}>
       
         <ShopApplicationWrapper />
       
     </RouterProvider>
+    </AuthProvider>
     </Provider>
 );
 

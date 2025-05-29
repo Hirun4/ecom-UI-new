@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useContext, useEffect } from 'react'
 import HeroSection from './components/HeroSection/HeroSection'
 import NewArrivals from './components/Sections/TodayDeals'
 import Category from './components/Sections/Categories/Category'
@@ -11,8 +11,10 @@ import { setLoading } from './store/features/common';
 import Navigation from './components/Navigation/Navigation';
 import HomeCard from './components/HomeCard';
 import TodayDeals from './components/Sections/TodayDeals';
+import { AuthContext } from './context/authContext';
 
 const Shop = () => {
+
 
   const dispatch = useDispatch();
 
@@ -28,6 +30,8 @@ const Shop = () => {
       dispatch(setLoading(false));
     })
   },[dispatch]);
+
+
 
   return (
     <>

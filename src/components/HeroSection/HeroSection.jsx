@@ -1,8 +1,12 @@
-import React from "react";
+import React, { useContext } from "react";
 import HeroImg from "../../assets/img/hero-img.png";
 import Navigation from "../Navigation/Navigation";
+import { AuthContext } from "../../context/authContext";
 
 const HeroSection = () => {
+  const {authState}=useContext(AuthContext);
+
+console.log(authState.user);
   return (
     <div className="w-full h-screen bg-white relative ">
       {/* Navigation at the top */}
