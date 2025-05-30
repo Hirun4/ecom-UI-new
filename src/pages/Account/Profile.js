@@ -49,6 +49,8 @@ const Profile = ({onCancel}) => {
     },
     [dispatch]
   );
+  console.log("id:",userInfo.id);
+  
 
   const onEditAddress = (address) => {
     setEditAddress(address); // Set the address to be edited

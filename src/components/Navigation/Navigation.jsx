@@ -8,7 +8,7 @@ import { useSelector } from "react-redux";
 import { countCartItems } from "../../store/features/cart";
 import { Button } from "react-admin";
 import { AuthContext } from "../../context/authContext";
-import { IoPersonCircleSharp } from "react-icons/io5";
+import { IoCart, IoPersonCircleSharp } from "react-icons/io5";
 
 const Navigation = ({ variant = "default" }) => {
   const { authState, logout } = useContext(AuthContext);
@@ -77,6 +77,11 @@ const Navigation = ({ variant = "default" }) => {
       <div>
         {authState.user ? (
           <div className="flex items-center gap-5">
+            <NavLink to="/cart-items">
+              <IoCart size={40} />
+            </NavLink>
+
+
             <NavLink to="/account-details/profile">
               <IoPersonCircleSharp size={40} />
             </NavLink>
