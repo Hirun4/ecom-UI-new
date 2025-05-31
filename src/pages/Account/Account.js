@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { setLoading } from "../../store/features/common";
 import { fetchUserDetails } from "../../api/userInfo";
 import { loadUserInfo, selectIsUserAdmin, selectUserInfo } from "../../store/features/user";
+import Navigation from "../../components/Navigation/Navigation";
 
 const Account = () => {
   const navigate = useNavigate();
@@ -26,6 +27,10 @@ const Account = () => {
 
  
   return (
+    <>
+    <div className="bg-[#CAF0F8] py-3 px-9">
+            <Navigation />
+          </div>
     <div className="p-8">
         {isUserAdmin && <div className="text-right"><Link to={"/admin"} className="text-lg text-blue-900 underline">Manage Admin</Link></div>}
       {userInfo?.email && (
@@ -105,6 +110,7 @@ const Account = () => {
         </>
       )}
     </div>
+    </>
   );
 };
 

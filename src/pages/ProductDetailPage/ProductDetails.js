@@ -4,6 +4,7 @@ import { MdAddShoppingCart } from "react-icons/md";
 import { toast } from 'react-toastify';
 import Navigation from "../../components/Navigation/Navigation";
 import { AuthContext } from '../../context/authContext';
+import Footer from "../../components/Footer/Footer";
 
 const ProductDetails = () => {
   const location = useLocation();
@@ -231,6 +232,9 @@ const ProductDetails = () => {
             </div>
           </div>
         </div>
+      </div>
+      <div className="bg-[#CAF0F8] py-3 px-9">
+        <Footer />
       </div>
     </>
   );

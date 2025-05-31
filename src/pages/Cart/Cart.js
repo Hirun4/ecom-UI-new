@@ -8,6 +8,8 @@ import DeleteIcon from '../../components/common/DeleteIcon';
 import Modal from 'react-modal';
 import { customStyles } from '../../styles/modal';
 import { AuthContext } from '../../context/authContext';
+import Navigation from '../../components/Navigation/Navigation';
+import Footer from '../../components/Footer/Footer';
 
 
 const headers = [
@@ -119,6 +121,10 @@ console.log("Using userIdentifier:", userIdentifier);
     }
 
     return (
+        <>
+        <div className="bg-[#CAF0F8] py-3 px-9">
+        <Navigation />
+      </div>
         <div className='p-4'>
             {error && (
                 <div className="text-red-500 p-4">
@@ -267,6 +273,10 @@ console.log("Using userIdentifier:", userIdentifier);
                 </div>
             </Modal>
         </div>
+        <div className="bg-[#CAF0F8] py-3 px-9">
+        <Footer />
+      </div>
+        </>
     );
 };
 
