@@ -9,6 +9,7 @@ import { Provider } from 'react-redux';
 import store from './store/store';
 import ShopApplicationWrapper from './pages/ShopApplicationWrapper';
 import { AuthProvider } from './context/authContext';
+import { ToastContainer } from 'react-toastify';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -19,6 +20,7 @@ root.render(
         <ShopApplicationWrapper />
       
     </RouterProvider>
+    <ToastContainer position="top-right" autoClose={3000} />
     </AuthProvider>
     </Provider>
 );

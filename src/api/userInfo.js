@@ -1,6 +1,19 @@
 import axios from "axios";
 import { API_BASE_URL, getHeaders } from "./constant";
 
+
+export const cancelOrderAPI = async (orderId) => {
+  const url = `${API_BASE_URL}/api/order1/cancel/${orderId}`;
+  try {
+    const response = await axios.put(url, null, {
+      headers: getHeaders(),
+    });
+    return response.data;
+  } catch (err) {
+    throw new Error(err);
+  }
+};
+
 export const fetchUserDetails = async () => {
   const url = API_BASE_URL + "/api/user/profile";
   try {
@@ -73,18 +86,7 @@ export const fetchOrderAPI = async (phone) => {
     }
 };
 
-export const cancelOrderAPI = async (id) => {
-  const url = API_BASE_URL + `/api/order/cancel/${id}`;
-  try {
-    const response = await axios(url, {
-      method: "POST",
-      headers: getHeaders(),
-    });
-    return response?.data;
-  } catch (err) {
-    throw new Error(err);
-  }
-};
+
 
 export const updateUserDetailsAPI = async (data, id) => {
   const url = API_BASE_URL + `/api/user/profile/update/${id}`;

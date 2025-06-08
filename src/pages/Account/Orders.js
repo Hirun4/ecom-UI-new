@@ -4,24 +4,22 @@ import { setLoading } from '../../store/features/common';
 import { cancelOrderAPI, fetchOrderAPI } from '../../api/userInfo';
 import { selectUserInfo } from '../../store/features/user';
 import moment from 'moment';
-import Timeline from '../../components/Timeline/Timeline';
+import { toast } from 'react-toastify';
+
 import { getStepCount } from '../../utils/order-util';
 
 const Orders = () => {
   const userInfo = useSelector(selectUserInfo);
   const dispatch = useDispatch();
 
-  // Load selected filter from localStorage or default to 'SHIPPED'
   const [selectedFilter, setSelectedFilter] = useState(() => {
     return localStorage.getItem('orderFilter') || 'Shipped';
   });
-  
   const [orders, setOrders] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState('');
 
   const fetchOrders = useCallback(() => {
     if (!userInfo?.phoneNumber) return;
-
     dispatch(setLoading(true));
     fetchOrderAPI(userInfo.phoneNumber)
       .then(res => {
@@ -71,9 +69,11 @@ const Orders = () => {
     dispatch(setLoading(true));
     cancelOrderAPI(id)
       .then(() => {
+        toast.success('Order cancelled successfully!');
         fetchOrders();
       })
       .catch(err => {
+        toast.error('Error cancelling order');
         console.error('Error cancelling order:', err);
       })
       .finally(() => {
@@ -95,9 +95,9 @@ const Orders = () => {
           >
             <option value='Shipped'>Shipped</option>
             <option value='Delivered'>Delivered</option>
+            <option value='PENDING'>Pending</option>
           </select>
         </div>
-
         {filteredOrders.length > 0 ? (
           filteredOrders.map((order, index) => (
             <div key={order.id || index} className='mb-8 bg-white rounded-lg shadow'>
@@ -125,7 +125,6 @@ const Orders = () => {
                   </button>
                 </div>
               </div>
-
               {selectedOrder === order?.id && order?.items?.length > 0 && (
                 <div className='p-4'>
                   {order.items.map((item, idx) => (
@@ -151,7 +150,7 @@ const Orders = () => {
                     </div>
                     {order?.orderStatus !== 'CANCELLED' && getStepCount[order?.orderStatus] <= 2 && (
                       <button
-                        onClick={() => onCancelOrder(order?.id)}
+                        onClick={() => onCancelOrder(order.id)}
                         className='bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700'
                       >
                         Cancel Order

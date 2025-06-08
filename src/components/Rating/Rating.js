@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import { useMemo } from 'react'
 import SvgStarIcon from '../common/SvgStarIcon';
 import { SvgEmptyStar } from '../common/SvgEmptyStar';
 

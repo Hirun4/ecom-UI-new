@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useState, useContext } from "react";
-import { Link, useLocation } from "react-router-dom";
+import React, { useEffect, useState, useContext } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { MdAddShoppingCart } from "react-icons/md";
 import { toast } from 'react-toastify';
 import Navigation from "../../components/Navigation/Navigation";
@@ -8,16 +8,16 @@ import Footer from "../../components/Footer/Footer";
 
 const ProductDetails = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { id } = location.state;
   const { authState } = useContext(AuthContext);
-  
+
   const [product, setProduct] = useState([]);
   const [sellsCount, setSellCount] = useState(0);
   const [selectedSize, setSelectedSize] = useState(null);
   const [stocks, setStocks] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [quantity] = useState(1); // Default quantity is 1
+  const [quantity, setQuantity] = useState(1);
 
   useEffect(() => {
     fetch(`http://localhost:8080/api/products/${id}`)
@@ -36,27 +36,44 @@ const ProductDetails = () => {
       .catch((err) => console.error(err));
   }, [id]);
 
+  const getAvailableStock = () => {
+    const stockObj = stocks.find(s => s.size === selectedSize);
+    return stockObj ? stockObj.quantity : 0;
+  };
+
   const handleClick = (size) => {
     setSelectedSize(size);
-    setError(null);
+    setQuantity(1);
+  };
+
+  const handleQuantityChange = (delta) => {
+    const available = getAvailableStock();
+    let newQty = quantity + delta;
+    if (newQty < 1) newQty = 1;
+    if (newQty > available) {
+      toast.warning("Stock doesn't have enough quantity");
+      newQty = available;
+    }
+    setQuantity(newQty);
   };
 
   const handleAddToCart = async () => {
     if (!selectedSize) {
-      setError("Please select a size");
+      toast.warning("Please select a size");
       return;
     }
-
     if (!authState.user) {
-      setError("Please login to add items to cart");
+      toast.error("Please login to add items to cart");
+      return;
+    }
+    if (quantity > getAvailableStock()) {
+      toast.warning("Stock doesn't have enough quantity");
       return;
     }
 
     setIsLoading(true);
-    setError(null);
 
     const userIdentifier = `0x${authState.user.id.replace(/-/g, '')}`;
-    
     const cartItemRequest = {
       productId: id,
       size: selectedSize,
@@ -73,22 +90,19 @@ const ProductDetails = () => {
         body: JSON.stringify(cartItemRequest)
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to add item to cart');
-      }
-
-      const data = await response.json();
-      console.log('Added to cart:', data);
+      if (!response.ok) throw new Error('Failed to add item to cart');
+      await response.json();
       toast.success('Item added to cart successfully!');
-      setSelectedSize(null); // Reset size selection
+      setSelectedSize(null);
+      setQuantity(1);
     } catch (error) {
-      console.error('Error adding to cart:', error);
-      setError(error.message);
-      toast.error('Failed to add item to cart');
+      toast.error(error.message || 'Failed to add item to cart');
     } finally {
       setIsLoading(false);
     }
   };
+
+  
 
   return (
     <>
@@ -100,45 +114,17 @@ const ProductDetails = () => {
           <div className="flex w-1/2 flex-col gap-10">
             <div className="flex full gap-5">
               <div className="flex w-[10%] h-[400px] flex-col gap-[25px]">
-                <img
-                  className="w-full h-[60px] object-cover"
-                  src="/images/i1.jpg"
-                  alt=""
-                />
-                <img
-                  className="w-full h-[60px] object-cover"
-                  src="/images/i1.jpg"
-                  alt=""
-                />
-                <img
-                  className="w-full h-[60px] object-cover"
-                  src="/images/i1.jpg"
-                  alt=""
-                />
-                <img
-                  className="w-full h-[60px] object-cover"
-                  src="/images/i1.jpg"
-                  alt=""
-                />
-                <img
-                  className="w-full h-[60px] object-cover"
-                  src="/images/i1.jpg"
-                  alt=""
-                />
+                <img className="w-full h-[60px] object-cover" src="/images/i1.jpg" alt="" />
+                <img className="w-full h-[60px] object-cover" src="/images/i1.jpg" alt="" />
+                <img className="w-full h-[60px] object-cover" src="/images/i1.jpg" alt="" />
+                <img className="w-full h-[60px] object-cover" src="/images/i1.jpg" alt="" />
+                <img className="w-full h-[60px] object-cover" src="/images/i1.jpg" alt="" />
               </div>
-              <img
-                className="w-5/6 h-[400px] object-cover"
-                src="/images/i1.jpg"
-                alt=""
-              />
+              <img className="w-5/6 h-[400px] object-cover" src="/images/i1.jpg" alt="" />
             </div>
             <div className="flex flex-col gap-5 justify-center items-center">
               <h1 className="text-lg font-bold text-black">Shoe Sizes</h1>
-              <img
-                className="w-[500px] h-[700px] object-cover"
-                src="/images/size.png"
-                alt=""
-              />
+              <img className="w-[500px] h-[700px] object-cover" src="/images/size.png" alt="" />
             </div>
           </div>
 
@@ -177,16 +163,10 @@ const ProductDetails = () => {
             </div>
             <div className="flex flex-col gap-3">
               <span className="text-xl font-medium">Select Size</span>
-              {error && (
-                <div className="text-red-500 text-sm">
-                  {error}
-                </div>
-              )}
               <div className="grid grid-cols-5 gap-2 w-[350px]">
                 {stocks.map((stock) => {
                   const isAvailable = stock.quantity > 0;
                   const isSelected = selectedSize === stock.size;
-
                   return (
                     <button
                       key={stock.stock_id}
@@ -202,7 +182,21 @@ const ProductDetails = () => {
                 })}
               </div>
             </div>
-            <div className="flex gap-3">
+            <div className="flex items-center gap-3 mt-2">
+              <span className="text-md font-medium">Quantity</span>
+              <button
+                className="px-2 py-1 border rounded disabled:opacity-50"
+                onClick={() => handleQuantityChange(-1)}
+                disabled={quantity <= 1}
+              >-</button>
+              <span className="px-3">{quantity}</span>
+              <button
+                className="px-2 py-1 border rounded disabled:opacity-50"
+                onClick={() => handleQuantityChange(1)}
+                disabled={!selectedSize || quantity >= getAvailableStock()}
+              >+</button>
+            </div>
+            <div className="flex gap-3 mt-4">
               <button
                 className={`border flex items-center justify-center gap-3 rounded-md ${
                   isLoading || !selectedSize
@@ -215,9 +209,8 @@ const ProductDetails = () => {
                 <MdAddShoppingCart className="text-xl" />
                 {isLoading ? 'Adding...' : 'Add to Cart'}
               </button>
+              
             </div>
-
-            {/* Reviews section */}
             <div>
               <h1 className="text-lg font-bold text-black">Reviews(3)</h1>
               <div className="flex flex-col gap-3 p-5">

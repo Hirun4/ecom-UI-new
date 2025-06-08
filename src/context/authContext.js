@@ -22,12 +22,12 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  const login = (token, user) => {
-    localStorage.setItem('access_token', token);
-    localStorage.setItem('user_data', JSON.stringify(user));
-    setAuthState({ token, user });
-    // navigate('/'); // Redirect to home after login
-  };
+  // const login = (token, user) => {
+  //   localStorage.setItem('access_token', token);
+  //   localStorage.setItem('user_data', JSON.stringify(user));
+  //   setAuthState({ token, user });
+  //   // navigate('/'); // Redirect to home after login
+  // };
 
   const logout = () => {
     localStorage.removeItem('access_token');
@@ -35,6 +35,18 @@ export const AuthProvider = ({ children }) => {
     setAuthState({ token: null, user: null });
     // navigate('/');// Redirect to login after logout
   };
+
+  const login = async (token) => {
+  localStorage.setItem('access_token', token);
+  // Fetch user profile from backend
+  const res = await fetch('http://localhost:8080/api/user/profile', {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  const user = await res.json();
+  localStorage.setItem('user_data', JSON.stringify(user));
+  setAuthState({ token, user });
+};
+
 
   return (
     <AuthContext.Provider value={{ authState, login, logout }}>
