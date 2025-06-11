@@ -120,7 +120,7 @@ const ProductDetails = () => {
                 <img className="w-full h-[60px] object-cover" src="/images/i1.jpg" alt="" />
                 <img className="w-full h-[60px] object-cover" src="/images/i1.jpg" alt="" />
               </div>
-              <img className="w-5/6 h-[400px] object-cover" src="/images/i1.jpg" alt="" />
+              <img className="w-5/6 h-[400px] object-cover" src={product.image_url} alt="" />
             </div>
             <div className="flex flex-col gap-5 justify-center items-center">
               <h1 className="text-lg font-bold text-black">Shoe Sizes</h1>

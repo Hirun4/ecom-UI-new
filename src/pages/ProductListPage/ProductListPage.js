@@ -32,6 +32,8 @@ const ProductListPage = ({categoryType}) => {
   useEffect(()=>{
     dispatch(setLoading(true));
     getAllProducts(category?.id).then(res=>{
+      
+      
       setProducts(res);
     }).catch(err=>{
       
@@ -72,8 +74,10 @@ const ProductListPage = ({categoryType}) => {
             <p className='text-black text-lg'>{category?.description}</p>
                 {/* Products */}
                 <div className='pt-4 grid grid-cols-1 lg:grid-cols-3 md:grid-cols-2 gap-8 px-2'>
+                 
+                  
                 {products?.map((item,index)=>(
-                  <ProductCard key={item?.id+"_"+index} {...item} title={item?.name}/>
+                  <ProductCard key={item?.id+"_"+index} {...item} title={item?.name} thumbnail={item?.image_url}/>
                 ))}
                 </div>
 

@@ -31,7 +31,7 @@ const TodayDeals = () => {
           <Card
             key={product.product_id}
             id={product.product_id}
-            imagePath={product.imagePath}
+            imagePath={product.image_url}
             title={product.name}
             category={product.category}
             Price={product.price}
