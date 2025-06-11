@@ -1,291 +1,317 @@
-import React, { useEffect, useState, useContext } from "react";
-import axios from "axios";
-import { Link, useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
-import { selectUserInfo } from "../../store/features/user";
-import EmptyCart from "../../assets/img/empty_cart.png";
-import DeleteIcon from "../../components/common/DeleteIcon";
-import Modal from "react-modal";
-import { customStyles } from "../../styles/modal";
-import { AuthContext } from "../../context/authContext";
-import Navigation from "../../components/Navigation/Navigation";
-import Footer from "../../components/Footer/Footer";
-import { toast } from "react-toastify";
-
-const headers = [
-  "Select",
-  "Product Details",
-  "Price",
-  "Quantity",
-  "Size",
-  "SubTotal",
-  "Action",
-];
+import React, { useCallback, useMemo, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { selectCartItems } from '../../store/features/cart';
+import { NumberInput } from '../../components/NumberInput/NumberInput';
+import { delteItemFromCartAction, updateItemToCartAction } from '../../store/actions/cartAction';
+import DeleteIcon from '../../components/common/DeleteIcon';
+import Modal from 'react-modal';
+import { customStyles } from '../../styles/modal';
+import { isTokenValid } from '../../utils/jwt-helper';
+import { Link, useNavigate } from 'react-router-dom';
+import EmptyCart from '../../assets/img/empty_cart.png';
 
 const Cart = () => {
-  const { authState } = useContext(AuthContext);
-  const userInfo = useSelector(selectUserInfo);
-  const [cartItems, setCartItems] = useState([]);
-  const [selectedItems, setSelectedItems] = useState([]);
+  const cartItems = useSelector(selectCartItems);
+  const dispatch = useDispatch();
   const [modalIsOpen, setModalIsOpen] = useState(false);
-  const [deleteItemId, setDeleteItemId] = useState(null);
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(true);
-
+  const [deleteItem, setDeleteItem] = useState({});
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
   const navigate = useNavigate();
 
-  const userIdentifier = authState.user?.id
-    ? `0x${authState.user.id.replace(/-/g, "")}`
-    : "user123";
+  const onChangeQuantity = useCallback((value, productId, variantId) => {
+    dispatch(updateItemToCartAction({
+      productId: productId,
+      variant_id: variantId,
+      quantity: value
+    }));
+  }, [dispatch]);
 
-  const api = axios.create({
-    baseURL: "http://localhost:8080",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
-
-  useEffect(() => {
-    fetchCartItems();
-  }, [userIdentifier]);
-
-  const fetchCartItems = async () => {
-    setLoading(true);
-    try {
-      const response = await api.get(`/api/cart/${userIdentifier}`);
-      setCartItems(response.data);
-      setError(null);
-    } catch (error) {
-      setError(error.response?.data?.message || error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDeleteItem = async () => {
-    try {
-      await api.delete(`/api/cart/${userIdentifier}/items/${deleteItemId}`);
-      setModalIsOpen(false);
-      await fetchCartItems();
-      setSelectedItems((prev) => prev.filter((id) => id !== deleteItemId));
-    } catch (error) {
-      setError(error.response?.data?.message || error.message);
-    }
-  };
-
-  const handleItemSelection = (itemId) => {
-    setSelectedItems((prev) => {
-      if (prev.includes(itemId)) {
-        return prev.filter((id) => id !== itemId);
-      }
-      return [...prev, itemId];
+  const onDeleteProduct = useCallback((productId, variantId) => {
+    setModalIsOpen(true);
+    setDeleteItem({
+      productId: productId,
+      variantId: variantId
     });
-  };
+  }, []);
 
-  const handleSelectAll = (event) => {
-    if (event.target.checked) {
-      setSelectedItems(cartItems.map((item) => item.id));
-    } else {
-      setSelectedItems([]);
+  const onCloseModal = useCallback(() => {
+    setDeleteItem({});
+    setModalIsOpen(false);
+  }, []);
+
+  const onDeleteItem = useCallback(() => {
+    dispatch(delteItemFromCartAction(deleteItem));
+    setModalIsOpen(false);
+  }, [deleteItem, dispatch]);
+
+  const subTotal = useMemo(() => {
+    let value = 0;
+    cartItems?.forEach(element => {
+      value += element?.subTotal;
+    });
+    return value?.toFixed(2);
+  }, [cartItems]);
+
+  const discount = useMemo(() => {
+    if (appliedCoupon) {
+      return (subTotal * 0.1).toFixed(2);
+    }
+    return 0;
+  }, [subTotal, appliedCoupon]);
+
+  const finalTotal = useMemo(() => {
+    return (subTotal - discount).toFixed(2);
+  }, [subTotal, discount]);
+
+  const isLoggedIn = useMemo(() => {
+    return isTokenValid();
+  }, []);
+
+  const handleApplyCoupon = (e) => {
+    e.preventDefault();
+    if (couponCode.toLowerCase() === 'save10') {
+      setAppliedCoupon({ code: couponCode, discount: 10 });
     }
   };
 
-  const calculateSelectedTotal = () => {
-    return cartItems
-      .filter((item) => selectedItems.includes(item.id))
-      .reduce((sum, item) => sum + item.product.price * item.quantity, 0)
-      .toFixed(2);
-  };
-
-  const handleCheckout = async () => {
-    if (selectedItems.length === 0) {
-      toast.warn("Please select items to checkout");
-      return;
-    }
-    const selectedCartItems = cartItems.filter((item) =>
-      selectedItems.includes(item.id)
+  const CustomNumberInput = ({ quantity, onChangeQuantity, max = 10 }) => {
+    return (
+      <div className="flex items-center bg-gray-50 rounded-lg border border-gray-200 overflow-hidden">
+        <button
+          onClick={() => onChangeQuantity(Math.max(1, quantity - 1))}
+          className="p-2 hover:bg-gray-100 transition-colors duration-200 text-gray-600 hover:text-gray-800 disabled:opacity-50 w-8 h-8 flex items-center justify-center"
+          disabled={quantity <= 1}
+        >
+          −
+        </button>
+        <span className="px-4 py-2 bg-white min-w-[50px] text-center font-medium">
+          {quantity}
+        </span>
+        <button
+          onClick={() => onChangeQuantity(Math.min(max, quantity + 1))}
+          className="p-2 hover:bg-gray-100 transition-colors duration-200 text-gray-600 hover:text-gray-800 disabled:opacity-50 w-8 h-8 flex items-center justify-center"
+          disabled={quantity >= max}
+        >
+          +
+        </button>
+      </div>
     );
-
-    // Check stock for each selected item
-    try {
-      for (const item of selectedCartItems) {
-        // Fetch latest stock for this product and size
-        const res = await api.get(`/api/products/${item.product.product_id}`);
-        const product = res.data;
-        // Find the stock for the selected size
-        const stock = product.stocks.find((s) => s.size === item.size);
-        if (!stock || stock.quantity < item.quantity) {
-          toast.error(
-            `Not enough stock for "${item.product.name}" (size ${
-              item.size
-            }). Available: ${stock ? stock.quantity : 0}`
-          );
-          return; // Stop checkout if any item is not available
-        }
-      }
-      // All items have enough stock, proceed
-      navigate("/place-order", {
-        state: {
-          items: selectedCartItems,
-          total: calculateSelectedTotal(),
-        },
-      });
-    } catch (error) {
-      toast.error("Error checking stock. Please try again.");
-    }
   };
 
-  if (loading) return <div>Loading cart...</div>;
+  if (!cartItems?.length) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="text-center py-20">
+            <div className="w-32 h-32 mx-auto bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center shadow-lg">
+              <div className="text-4xl text-gray-400">🛒</div>
+            </div>
+            <h2 className="text-3xl font-bold text-gray-800 mb-4">Your cart is empty</h2>
+            <p className="text-gray-600 mb-8 text-lg">Looks like you haven't added any items to your cart yet.</p>
+            <Link
+              to="/"
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
+            >
+              Continue Shopping
+              <span className="text-xl">→</span>
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <>
-      <div className="bg-[#CAF0F8] py-3 px-9">
-        <Navigation />
-      </div>
-      <div className="p-4">
-        {error && <div className="text-red-500 p-4">Error: {error}</div>}
-
-        {cartItems.length > 0 ? (
-          <>
-            <div className="flex justify-between items-center p-4">
-              <p className="text-xl text-black">Shopping Bag</p>
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={selectedItems.length === cartItems.length}
-                  onChange={handleSelectAll}
-                  className="w-4 h-4"
-                />
-                <span>Select All</span>
-              </div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
+      <div className="max-w-6xl mx-auto px-4">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-3 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl text-white shadow-lg">
+              <span className="text-2xl">🛍️</span>
             </div>
-            <table className="w-full text-lg">
-              <thead className="text-sm bg-black text-white uppercase">
-                <tr>
-                  {headers.map((header, index) => (
-                    <th key={index} scope="col" className="px-6 py-3">
-                      {header}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {cartItems.map((item) => (
-                  <tr key={item.id} className="p-4 bg-white border-b">
-                    <td className="text-center">
-                      <input
-                        type="checkbox"
-                        checked={selectedItems.includes(item.id)}
-                        onChange={() => handleItemSelection(item.id)}
-                        className="w-4 h-4"
-                      />
-                    </td>
-                    <td>
-                      <div className="flex p-4">
+            <h1 className="text-3xl font-bold text-gray-800">Shopping Cart</h1>
+            <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold">
+              {cartItems.length} {cartItems.length === 1 ? 'item' : 'items'}
+            </span>
+          </div>
+        </div>
+
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Cart Items */}
+          <div className="lg:col-span-2">
+            <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+              <div className="p-6 bg-gradient-to-r from-gray-50 to-white border-b">
+                <h2 className="text-xl font-semibold text-gray-800">Items in your cart</h2>
+              </div>
+              
+              <div className="divide-y divide-gray-100">
+                {cartItems.map((item, index) => (
+                  <div key={`${item.productId}-${item.variant?.id}`} className="p-6 hover:bg-gray-50 transition-colors duration-200">
+                    <div className="flex gap-4">
+                      {/* Product Image */}
+                      <div className="relative group">
                         <img
-                          src={item.product.image_url}
-                          alt={item.product.name}
-                          className="w-[120px] h-[120px] object-cover"
+                          src={item?.thumbnail}
+                          alt={item?.name}
+                          className="w-24 h-24 object-cover rounded-xl shadow-md group-hover:shadow-lg transition-shadow duration-200"
                         />
-                        <div className="flex flex-col text-sm px-2 text-gray-600">
-                          <p>{item.product.name}</p>
-                          <p>Size: {item.size}</p>
+                      </div>
+
+                      {/* Product Details */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-start mb-2">
+                          <h3 className="font-semibold text-gray-800 truncate pr-4">{item?.name}</h3>
+                          <button
+                            onClick={() => onDeleteProduct(item?.productId, item?.variant?.id)}
+                            className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all duration-200"
+                          >
+                            <DeleteIcon />
+                          </button>
+                        </div>
+                        
+                        <div className="flex flex-wrap gap-2 mb-3">
+                          {item?.variant?.size && (
+                            <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-md text-sm">
+                              Size: {item.variant.size}
+                            </span>
+                          )}
+                          {item?.variant?.color && (
+                            <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-md text-sm">
+                              Color: {item.variant.color}
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                            <CustomNumberInput
+                              quantity={item?.quantity}
+                              onChangeQuantity={(value) => onChangeQuantity(value, item?.productId, item?.variant?.id)}
+                              max={10}
+                            />
+                            <span className="text-sm text-gray-500">×</span>
+                            <span className="font-semibold text-gray-700">${item?.price}</span>
+                          </div>
+                          <div className="text-right">
+                            <div className="font-bold text-lg text-gray-800">${item?.subTotal}</div>
+                            <div className="text-xs text-green-600 flex items-center gap-1">
+                              <span>🎁</span>
+                              Free shipping
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    </td>
-                    <td className="text-center text-sm text-gray-600">
-                      ${item.product.price}
-                    </td>
-                    <td className="text-center text-sm text-gray-600">
-                      {item.quantity}
-                    </td>
-                    <td className="text-center text-sm text-gray-600">
-                      {item.size}
-                    </td>
-                    <td className="text-center text-sm text-gray-600">
-                      ${(item.product.price * item.quantity).toFixed(2)}
-                    </td>
-                    <td>
-                      <button
-                        className="flex justify-center items-center w-full"
-                        onClick={() => {
-                          setDeleteItemId(item.id);
-                          setModalIsOpen(true);
-                        }}
-                      >
-                        <DeleteIcon />
-                      </button>
-                    </td>
-                  </tr>
+                    </div>
+                  </div>
                 ))}
-              </tbody>
-            </table>
-            <div className="flex justify-end bg-gray-200 p-8">
-              <div className="mr-20 pr-8">
-                <div className="flex gap-8 text-lg">
-                  <p className="w-[120px]">Selected Total</p>
-                  <p>${calculateSelectedTotal()}</p>
-                </div>
-                <button
-                  className={`w-full items-center h-[48px] border rounded-lg mt-2 text-white 
-                                        ${
-                                          selectedItems.length > 0
-                                            ? "bg-black hover:bg-gray-800"
-                                            : "bg-gray-400 cursor-not-allowed"
-                                        }`}
-                  onClick={handleCheckout}
-                  disabled={selectedItems.length === 0}
-                >
-                  Proceed to Checkout ({selectedItems.length} items)
-                </button>
               </div>
             </div>
-          </>
-        ) : (
-          <div className="w-full items-center text-center">
-            <div className="flex justify-center">
-              <img
-                src={EmptyCart}
-                className="w-[240px] h-[240px]"
-                alt="empty-cart"
-              />
-            </div>
-            <p className="text-3xl font-bold">Your cart is empty</p>
-            <div className="p-4">
+          </div>
+
+          {/* Order Summary */}
+          <div className="lg:col-span-1">
+            <div className="sticky top-4 space-y-6">
+              {/* Coupon Code */}
+              <div className="bg-white rounded-2xl shadow-lg p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="text-orange-500 text-xl">🏷️</span>
+                  <h3 className="font-semibold text-gray-800">Discount Coupon</h3>
+                </div>
+                <p className="text-sm text-gray-600 mb-4">Enter your coupon code to get discount</p>
+                
+                {appliedCoupon ? (
+                  <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span className="text-green-700 font-medium">{appliedCoupon.code}</span>
+                    </div>
+                    <button
+                      onClick={() => setAppliedCoupon(null)}
+                      className="text-green-600 hover:text-green-800 text-sm"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={couponCode}
+                      onChange={(e) => setCouponCode(e.target.value)}
+                      placeholder="Enter code (try SAVE10)"
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    <button
+                      onClick={handleApplyCoupon}
+                      className="px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg hover:from-orange-600 hover:to-red-600 transition-all duration-200 font-medium"
+                    >
+                      Apply
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Order Summary */}
+              <div className="bg-white rounded-2xl shadow-lg p-6">
+                <h3 className="font-semibold text-gray-800 mb-4">Order Summary</h3>
+                
+                <div className="space-y-3 mb-4">
+                  <div className="flex justify-between text-gray-600">
+                    <span>Subtotal</span>
+                    <span>${subTotal}</span>
+                  </div>
+                  <div className="flex justify-between text-gray-600">
+                    <span>Shipping</span>
+                    <span className="text-green-600 font-medium">FREE</span>
+                  </div>
+                  {appliedCoupon && (
+                    <div className="flex justify-between text-green-600">
+                      <span>Discount ({appliedCoupon.discount}%)</span>
+                      <span>-${discount}</span>
+                    </div>
+                  )}
+                </div>
+                
+                <hr className="my-4" />
+                
+                <div className="flex justify-between items-center mb-6">
+                  <span className="text-lg font-bold text-gray-800">Total</span>
+                  <span className="text-2xl font-bold text-gray-800">${finalTotal}</span>
+                </div>
+
+                {isLoggedIn ? (
+                  <button
+                    onClick={() => navigate("/checkout")}
+                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
+                  >
+                    <span>🔒</span>
+                    Secure Checkout
+                  </button>
+                ) : (
+                  <Link
+                    to="/v1/login"
+                    className="w-full bg-gradient-to-r from-gray-700 to-gray-800 text-white py-4 rounded-xl font-semibold hover:from-gray-800 hover:to-gray-900 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
+                  >
+                    Login to Checkout
+                    <span className="text-xl">→</span>
+                  </Link>
+                )}
+              </div>
+
+              {/* Continue Shopping */}
               <Link
                 to="/"
-                className="w-full p-2 items-center h-[48px] bg-black border rounded-lg mt-2 text-white hover:bg-gray-800"
+                className="block w-full text-center py-3 text-blue-600 hover:text-blue-800 font-medium hover:bg-blue-50 rounded-xl transition-all duration-200"
               >
-                Continue Shopping
+                ← Continue Shopping
               </Link>
             </div>
           </div>
-        )}
-
-        <Modal
-          isOpen={modalIsOpen}
-          onRequestClose={() => setModalIsOpen(false)}
-          style={customStyles}
-          contentLabel="Remove Item"
-        >
-          <p>Are you sure you want to remove this item?</p>
-          <div className="flex justify-between p-4">
-            <button className="h-[48px]" onClick={() => setModalIsOpen(false)}>
-              Cancel
-            </button>
-            <button
-              className="bg-black text-white w-[80px] h-[48px] border rounded-lg"
-              onClick={handleDeleteItem}
-            >
-              Remove
-            </button>
-          </div>
-        </Modal>
+        </div>
       </div>
-      <div className="bg-[#CAF0F8] py-3 px-9">
-        <Footer />
-      </div>
-    </>
+    </div>
   );
 };
 
