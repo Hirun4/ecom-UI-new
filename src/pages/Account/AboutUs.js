@@ -7,7 +7,7 @@ const AboutUs = () => {
         <div className="text-center py-12">
           <h2 className="text-4xl font-bold text-gray-800 mb-4">Welcome to Our Shoe Shop in Karapitiya!</h2>
           <p className="text-lg text-gray-600 mb-6">
-            We're located in the heart of Karapitiya, offering a wide range of quality shoes for all occasions. From casual wear to formal and athletic shoes, we have it all. Explore and shop with us online!
+            We are located in the heart of Karapitiya, offering a wide range of quality shoes for all occasions. From casual wear to formal and athletic shoes, we have it all. Explore and shop with us online!
           </p>
 
           <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
@@ -30,7 +30,7 @@ const AboutUs = () => {
 
           <h3 className="text-2xl font-semibold text-gray-800 mb-4">Our Location</h3>
           <p className="text-lg text-gray-600 mb-6">
-            Visit us in Karapitiya for a personalized shopping experience or enjoy the convenience of shopping from home. Either way, we are committed to providing you with the best products and service!
+            Visit us in Karapitiya for a personalized shopping experience or enjoy the convenience of shopping from home. Either way, we are committed to providing you with the best products and service !
           </p>
         </div>
       </div>

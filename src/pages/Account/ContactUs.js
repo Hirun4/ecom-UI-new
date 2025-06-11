@@ -16,7 +16,7 @@ const ContactUs = () => {
               <li>
                 <strong>Phone:</strong> 
                 <a href="tel:+94765576129" className="text-blue-600 hover:text-blue-800">
-                  +94765576129
+                  +94 765576129
                 </a>
               </li>
               <li>
