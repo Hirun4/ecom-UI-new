@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useContext } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { MdAddShoppingCart } from "react-icons/md";
-import { toast } from 'react-toastify';
+import { toast } from "react-toastify";
 import Navigation from "../../components/Navigation/Navigation";
-import { AuthContext } from '../../context/authContext';
+import { AuthContext } from "../../context/authContext";
 import Footer from "../../components/Footer/Footer";
 
 const ProductDetails = () => {
@@ -18,13 +18,16 @@ const ProductDetails = () => {
   const [stocks, setStocks] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [quantity, setQuantity] = useState(1);
+  const [mainImage, setMainImage] = useState("");
 
   useEffect(() => {
     fetch(`http://localhost:8080/api/products/${id}`)
       .then((res) => res.json())
       .then((data) => {
+        console.log(data);
         setProduct(data);
         setStocks(data.stocks);
+        setMainImage(data.image_url); // Set main image
       })
       .catch((err) => console.error(err));
 
@@ -37,7 +40,7 @@ const ProductDetails = () => {
   }, [id]);
 
   const getAvailableStock = () => {
-    const stockObj = stocks.find(s => s.size === selectedSize);
+    const stockObj = stocks.find((s) => s.size === selectedSize);
     return stockObj ? stockObj.quantity : 0;
   };
 
@@ -73,36 +76,48 @@ const ProductDetails = () => {
 
     setIsLoading(true);
 
-    const userIdentifier = `0x${authState.user.id.replace(/-/g, '')}`;
+    const userIdentifier = `0x${authState.user.id.replace(/-/g, "")}`;
     const cartItemRequest = {
       productId: id,
       size: selectedSize,
-      quantity: quantity
+      quantity: quantity,
     };
 
     try {
-      const response = await fetch(`http://localhost:8080/api/cart/add/${userIdentifier}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authState.token}`
-        },
-        body: JSON.stringify(cartItemRequest)
-      });
+      const response = await fetch(
+        `http://localhost:8080/api/cart/add/${userIdentifier}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${authState.token}`,
+          },
+          body: JSON.stringify(cartItemRequest),
+        }
+      );
 
-      if (!response.ok) throw new Error('Failed to add item to cart');
+      if (!response.ok) throw new Error("Failed to add item to cart");
       await response.json();
-      toast.success('Item added to cart successfully!');
+      toast.success("Item added to cart successfully!");
       setSelectedSize(null);
       setQuantity(1);
     } catch (error) {
-      toast.error(error.message || 'Failed to add item to cart');
+      toast.error(error.message || "Failed to add item to cart");
     } finally {
       setIsLoading(false);
     }
   };
 
-  
+  let otherImages = [];
+  if (Array.isArray(product.other_images)) {
+    otherImages = product.other_images;
+  } else if (typeof product.other_images === "string") {
+    try {
+      otherImages = JSON.parse(product.other_images);
+    } catch {
+      otherImages = [];
+    }
+  }
 
   return (
     <>
@@ -114,17 +129,45 @@ const ProductDetails = () => {
           <div className="flex w-1/2 flex-col gap-10">
             <div className="flex full gap-5">
               <div className="flex w-[10%] h-[400px] flex-col gap-[25px]">
-                <img className="w-full h-[60px] object-cover" src="/images/i1.jpg" alt="" />
-                <img className="w-full h-[60px] object-cover" src="/images/i1.jpg" alt="" />
-                <img className="w-full h-[60px] object-cover" src="/images/i1.jpg" alt="" />
-                <img className="w-full h-[60px] object-cover" src="/images/i1.jpg" alt="" />
-                <img className="w-full h-[60px] object-cover" src="/images/i1.jpg" alt="" />
+                {/* Main image as first thumbnail */}
+                {product.image_url && (
+                  <img
+                    className={`w-full h-[60px] object-cover cursor-pointer border ${
+                      mainImage === product.image_url
+                        ? "border-black"
+                        : "border-transparent"
+                    }`}
+                    src={product.image_url}
+                    alt=""
+                    onClick={() => setMainImage(product.image_url)}
+                  />
+                )}
+                {/* Other images */}
+                {otherImages.map((img, idx) => (
+                  <img
+                    key={idx}
+                    className={`w-full h-[60px] object-cover cursor-pointer border ${
+                      mainImage === img ? "border-black" : "border-transparent"
+                    }`}
+                    src={img}
+                    alt=""
+                    onClick={() => setMainImage(img)}
+                  />
+                ))}
               </div>
-              <img className="w-5/6 h-[400px] object-cover" src={product.image_url} alt="" />
+              <img
+                className="w-5/6 h-[400px] object-cover"
+                src={mainImage}
+                alt=""
+              />
             </div>
             <div className="flex flex-col gap-5 justify-center items-center">
               <h1 className="text-lg font-bold text-black">Shoe Sizes</h1>
-              <img className="w-[500px] h-[700px] object-cover" src="/images/size.png" alt="" />
+              <img
+                className="w-[500px] h-[700px] object-cover"
+                src="/images/size.png"
+                alt=""
+              />
             </div>
           </div>
 
@@ -134,12 +177,14 @@ const ProductDetails = () => {
               <p className="text-gray-500 text-sm font-light">category</p>
             </div>
             <p className="text-black text-sm w-[350px] font-light">
-              {product.description || "The Nike Dunk Low Retro SE is a classic sneaker reimagined for modern style."}
+              {product.description ||
+                "The Nike Dunk Low Retro SE is a classic sneaker reimagined for modern style."}
             </p>
             <div className="flex gap-3">
               <div className="bg-[#90E0EF] w-fit px-2 rounded-md">
                 <span className="text-xs text-gray-500 font-light">
-                  Sells <span className="text-black font-normal">{sellsCount}</span>
+                  Sells{" "}
+                  <span className="text-black font-normal">{sellsCount}</span>
                 </span>
               </div>
               {product.stock_status === "In Stock" ? (
@@ -172,8 +217,16 @@ const ProductDetails = () => {
                       key={stock.stock_id}
                       onClick={() => isAvailable && handleClick(stock.size)}
                       className={`px-4 py-2 border rounded-md text-sm font-medium 
-                        ${isSelected ? "border-black bg-gray-200" : "border-gray-300 bg-white"}
-                        ${isAvailable ? "cursor-pointer text-black" : "text-gray-400 cursor-not-allowed opacity-50"}`}
+                        ${
+                          isSelected
+                            ? "border-black bg-gray-200"
+                            : "border-gray-300 bg-white"
+                        }
+                        ${
+                          isAvailable
+                            ? "cursor-pointer text-black"
+                            : "text-gray-400 cursor-not-allowed opacity-50"
+                        }`}
                       disabled={!isAvailable}
                     >
                       {stock.size}
@@ -188,28 +241,31 @@ const ProductDetails = () => {
                 className="px-2 py-1 border rounded disabled:opacity-50"
                 onClick={() => handleQuantityChange(-1)}
                 disabled={quantity <= 1}
-              >-</button>
+              >
+                -
+              </button>
               <span className="px-3">{quantity}</span>
               <button
                 className="px-2 py-1 border rounded disabled:opacity-50"
                 onClick={() => handleQuantityChange(1)}
                 disabled={!selectedSize || quantity >= getAvailableStock()}
-              >+</button>
+              >
+                +
+              </button>
             </div>
             <div className="flex gap-3 mt-4">
               <button
                 className={`border flex items-center justify-center gap-3 rounded-md ${
                   isLoading || !selectedSize
-                    ? 'bg-gray-300 cursor-not-allowed'
-                    : 'border-black hover:bg-white hover:text-black hover:border-black text-white bg-black'
+                    ? "bg-gray-300 cursor-not-allowed"
+                    : "border-black hover:bg-white hover:text-black hover:border-black text-white bg-black"
                 } transition duration-300 w-44 h-12`}
                 onClick={handleAddToCart}
                 disabled={isLoading || !selectedSize}
               >
                 <MdAddShoppingCart className="text-xl" />
-                {isLoading ? 'Adding...' : 'Add to Cart'}
+                {isLoading ? "Adding..." : "Add to Cart"}
               </button>
-              
             </div>
             <div>
               <h1 className="text-lg font-bold text-black">Reviews(3)</h1>
