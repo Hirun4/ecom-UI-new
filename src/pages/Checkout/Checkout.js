@@ -1,11 +1,11 @@
-import React, { useContext, useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { AuthContext } from '../../context/authContext';
-import { toast } from 'react-toastify';
-import Navigation from '../../components/Navigation/Navigation';
+import React, { useContext, useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import axios from "axios";
+import { AuthContext } from "../../context/authContext";
+import { toast } from "react-toastify";
+import Navigation from "../../components/Navigation/Navigation";
 
-const WHATSAPP_NUMBER = '0729827098';
+const WHATSAPP_NUMBER = "0729827098";
 
 const PlaceOrder = () => {
   const { authState } = useContext(AuthContext);
@@ -14,7 +14,7 @@ const PlaceOrder = () => {
   const navigate = useNavigate();
   const { items, total } = location.state || { items: [], total: 0 };
 
-  const [paymentMethod, setPaymentMethod] = useState('CASH_ON_DELIVERY');
+  const [paymentMethod, setPaymentMethod] = useState("CASH_ON_DELIVERY");
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [useExistingPromo, setUseExistingPromo] = useState(false);
@@ -23,8 +23,8 @@ const PlaceOrder = () => {
   const addressObj = userInfo?.addressList?.[0];
   const addressString = addressObj
     ? `${addressObj.street}, ${addressObj.city}, ${addressObj.state}, ${addressObj.zipCode}`
-    : '';
-  const district = addressObj?.city || '';
+    : "";
+  const district = addressObj?.city || "";
 
   // Fetch all previous promo prices for this user
   useEffect(() => {
@@ -36,9 +36,9 @@ const PlaceOrder = () => {
         );
         let promoSum = 0;
         if (Array.isArray(res.data)) {
-          res.data.forEach(order => {
+          res.data.forEach((order) => {
             if (Array.isArray(order.orderItems)) {
-              order.orderItems.forEach(item => {
+              order.orderItems.forEach((item) => {
                 if (item.promo_price && !isNaN(item.promo_price)) {
                   promoSum += Number(item.promo_price);
                 }
@@ -91,21 +91,23 @@ const PlaceOrder = () => {
           buying_price: item.product.price,
           selling_price: item.product.price,
           discount: 0,
-          buying_price_code: item.product.buying_price_code || '',
-          origin_country: item.product.origin_country || '',
+          buying_price_code: item.product.buying_price_code || "",
+          origin_country: item.product.origin_country || "",
           promo_price,
           final_price,
-          phone_number: userInfo?.phoneNumber
+          phone_number: userInfo?.phoneNumber,
         };
       });
 
       const orderRequest = {
-        customer_name: `${userInfo?.firstName || ''} ${userInfo?.lastName || ''}`.trim(),
+        customer_name: `${userInfo?.firstName || ""} ${
+          userInfo?.lastName || ""
+        }`.trim(),
         address: addressString,
         phone_number: userInfo?.phoneNumber,
         district: district,
         delivery_fee: 0,
-        orderItems
+        orderItems,
       };
 
       await axios.post(
@@ -113,8 +115,23 @@ const PlaceOrder = () => {
         orderRequest
       );
 
-      toast.success('Order placed!');
-      navigate('/account-details/orders');
+      // Remove ordered items from cart
+      const userIdentifier = authState.user?.id
+        ? `0x${authState.user.id.replace(/-/g, "")}`
+        : "user123";
+
+      for (const item of items) {
+        try {
+          await axios.delete(
+            `http://localhost:8080/api/cart/${userIdentifier}/items/${item.id}`
+          );
+        } catch (err) {
+          // Optionally handle error (e.g., log or show a toast)
+        }
+      }
+
+      toast.success("Order placed!");
+      navigate("/account-details/orders");
     } catch (error) {
       setError(error.response?.data?.message || error.message);
     } finally {
@@ -126,7 +143,7 @@ const PlaceOrder = () => {
     const message = encodeURIComponent(
       `Hello, I have placed a bank transfer order. Here is my payment slip for order by ${userInfo?.firstName} ${userInfo?.lastName}.`
     );
-    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${message}`, '_blank');
+    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${message}`, "_blank");
   };
 
   return (
@@ -134,20 +151,32 @@ const PlaceOrder = () => {
       <div className="bg-[#CAF0F8] py-3 px-9">
         <Navigation />
       </div>
-      <div style={{
-        maxWidth: 1000,
-        margin: '40px auto',
-        padding: 32,
-        background: '#fff',
-        borderRadius: 16,
-        boxShadow: '0 4px 24px rgba(0,0,0,0.08)'
-      }}>
-        <h2 style={{ textAlign: 'center', marginBottom: 32, fontWeight: 700, fontSize: 28, color: '#222' }}>
+      <div
+        style={{
+          maxWidth: 1000,
+          margin: "40px auto",
+          padding: 32,
+          background: "#fff",
+          borderRadius: 16,
+          boxShadow: "0 4px 24px rgba(0,0,0,0.08)",
+        }}
+      >
+        <h2
+          style={{
+            textAlign: "center",
+            marginBottom: 32,
+            fontWeight: 700,
+            fontSize: 28,
+            color: "#222",
+          }}
+        >
           Checkout
         </h2>
         <form onSubmit={handlePlaceOrder}>
           <section style={{ marginBottom: 32 }}>
-            <h3 style={{ fontSize: 20, fontWeight: 600, marginBottom: 12 }}>Contact Details</h3>
+            <h3 style={{ fontSize: 20, fontWeight: 600, marginBottom: 12 }}>
+              Contact Details
+            </h3>
             <div style={{ marginBottom: 8 }}>
               <span style={{ fontWeight: 500 }}>Full Name: </span>
               {userInfo?.firstName} {userInfo?.lastName}
@@ -163,105 +192,120 @@ const PlaceOrder = () => {
           </section>
 
           <section style={{ marginBottom: 32 }}>
-            <h3 style={{ fontSize: 20, fontWeight: 600, marginBottom: 12 }}>Address</h3>
+            <h3 style={{ fontSize: 20, fontWeight: 600, marginBottom: 12 }}>
+              Address
+            </h3>
             {userInfo?.addressList?.length ? (
               userInfo.addressList.map((address, idx) => (
                 <div
                   key={idx}
                   style={{
-                    background: '#f5f7fa',
-                    border: '1px solid #e0e0e0',
+                    background: "#f5f7fa",
+                    border: "1px solid #e0e0e0",
                     borderRadius: 8,
                     padding: 16,
-                    marginBottom: 8
+                    marginBottom: 8,
                   }}
                 >
                   <div style={{ fontWeight: 600 }}>{address?.name}</div>
                   <div>{address?.phoneNumber}</div>
-                  <div>{address?.street}, {address?.city}, {address?.state}</div>
+                  <div>
+                    {address?.street}, {address?.city}, {address?.state}
+                  </div>
                   <div>{address?.zipCode}</div>
                 </div>
               ))
             ) : (
-              <div style={{ color: '#888' }}>No address found.</div>
+              <div style={{ color: "#888" }}>No address found.</div>
             )}
           </section>
 
           <section style={{ marginBottom: 32 }}>
-            <label style={{ fontWeight: 500, marginBottom: 8, display: 'block' }}>Payment Method:</label>
-            <div style={{ display: 'flex', gap: 24 }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <label
+              style={{ fontWeight: 500, marginBottom: 8, display: "block" }}
+            >
+              Payment Method:
+            </label>
+            <div style={{ display: "flex", gap: 24 }}>
+              <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <input
                   type="radio"
                   value="CASH_ON_DELIVERY"
-                  checked={paymentMethod === 'CASH_ON_DELIVERY'}
-                  onChange={() => setPaymentMethod('CASH_ON_DELIVERY')}
+                  checked={paymentMethod === "CASH_ON_DELIVERY"}
+                  onChange={() => setPaymentMethod("CASH_ON_DELIVERY")}
                 />
                 Cash on Delivery
               </label>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <input
                   type="radio"
                   value="BANK_TRANSFER"
-                  checked={paymentMethod === 'BANK_TRANSFER'}
-                  onChange={() => setPaymentMethod('BANK_TRANSFER')}
+                  checked={paymentMethod === "BANK_TRANSFER"}
+                  onChange={() => setPaymentMethod("BANK_TRANSFER")}
                 />
                 Bank Transfer
               </label>
             </div>
-            {paymentMethod === 'BANK_TRANSFER' && (
+            {paymentMethod === "BANK_TRANSFER" && (
               <div style={{ marginTop: 16 }}>
                 <button
                   type="button"
                   onClick={handleWhatsApp}
                   style={{
-                    background: '#25D366',
-                    color: '#fff',
-                    border: 'none',
+                    background: "#25D366",
+                    color: "#fff",
+                    border: "none",
                     borderRadius: 6,
-                    padding: '10px 20px',
+                    padding: "10px 20px",
                     fontWeight: 600,
                     fontSize: 16,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
                   }}
                 >
                   <span style={{ fontSize: 20 }}>📎</span>
                   Send Payment Slip via WhatsApp
                 </button>
-                <div style={{ color: '#888', fontSize: 13, marginTop: 6 }}>
-                  After placing your order, click this button to send your payment slip to us on WhatsApp.
+                <div style={{ color: "#888", fontSize: 13, marginTop: 6 }}>
+                  After placing your order, click this button to send your
+                  payment slip to us on WhatsApp.
                 </div>
               </div>
             )}
           </section>
 
           <section>
-            <h3 style={{ fontSize: 20, fontWeight: 600, marginBottom: 12 }}>Order Items</h3>
+            <h3 style={{ fontSize: 20, fontWeight: 600, marginBottom: 12 }}>
+              Order Items
+            </h3>
             <div style={{ marginBottom: 12 }}>
               <label>
                 <input
                   type="checkbox"
                   checked={useExistingPromo}
-                  onChange={e => setUseExistingPromo(e.target.checked)}
+                  onChange={(e) => setUseExistingPromo(e.target.checked)}
                   disabled={existingPromoPrice <= 0}
                   style={{ marginRight: 8 }}
                 />
                 Use existing promo price (Total: ${existingPromoPrice})
               </label>
             </div>
-            <ul style={{
-              background: '#f9f9f9',
-              borderRadius: 8,
-              padding: 16,
-              marginBottom: 16,
-              border: '1px solid #eee'
-            }}>
+            <ul
+              style={{
+                background: "#f9f9f9",
+                borderRadius: 8,
+                padding: 16,
+                marginBottom: 16,
+                border: "1px solid #eee",
+              }}
+            >
               {items.map((item, idx) => (
                 <li key={item.id} style={{ marginBottom: 8 }}>
-                  <strong>{item.product.name}</strong> - Size: {item.size} x {item.quantity} = <b>${(item.product.price * item.quantity).toFixed(2)}</b>
+                  <strong>{item.product.name}</strong> - Size: {item.size} x{" "}
+                  {item.quantity} ={" "}
+                  <b>${(item.product.price * item.quantity).toFixed(2)}</b>
                 </li>
               ))}
             </ul>
@@ -269,24 +313,26 @@ const PlaceOrder = () => {
               Subtotal: ${total}
             </div>
           </section>
-          {error && <div style={{ color: 'red', marginBottom: 16 }}>{error}</div>}
+          {error && (
+            <div style={{ color: "red", marginBottom: 16 }}>{error}</div>
+          )}
           <button
             type="submit"
             disabled={submitting}
             style={{
-              width: '100%',
+              width: "100%",
               padding: 14,
-              background: submitting ? '#ccc' : '#222',
-              color: '#fff',
-              border: 'none',
+              background: submitting ? "#ccc" : "#222",
+              color: "#fff",
+              border: "none",
               borderRadius: 6,
               fontSize: 18,
               fontWeight: 600,
-              cursor: submitting ? 'not-allowed' : 'pointer',
-              marginTop: 12
+              cursor: submitting ? "not-allowed" : "pointer",
+              marginTop: 12,
             }}
           >
-            {submitting ? 'Placing Order...' : 'Place Order'}
+            {submitting ? "Placing Order..." : "Place Order"}
           </button>
         </form>
       </div>
