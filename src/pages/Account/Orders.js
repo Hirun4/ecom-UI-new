@@ -93,9 +93,10 @@ const Orders = () => {
             value={selectedFilter}
             onChange={handleOnChange}
           >
+            <option value='PENDING'>Pending</option>
             <option value='Shipped'>Shipped</option>
             <option value='Delivered'>Delivered</option>
-            <option value='PENDING'>Pending</option>
+            
           </select>
         </div>
         {filteredOrders.length > 0 ? (
