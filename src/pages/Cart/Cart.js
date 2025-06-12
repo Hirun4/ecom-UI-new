@@ -282,7 +282,7 @@ const Cart = () => {
           </div>
         </Modal>
       </div>
-      <div className="bg-[#CAF0F8] py-3 px-9">
+      <div className="bg-[#CAF0F8]">
         <Footer />
       </div>
     </>

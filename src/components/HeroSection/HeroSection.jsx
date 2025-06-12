@@ -2,9 +2,18 @@ import React, { useContext } from "react";
 import HeroImg from "../../assets/img/hero-img.png";
 import Navigation from "../Navigation/Navigation";
 import { AuthContext } from "../../context/authContext";
+import { useNavigate } from "react-router-dom";
 
 const HeroSection = () => {
   const {authState}=useContext(AuthContext);
+  const navigate = useNavigate();
+
+  const shownow=()=>{
+    navigate('/shopnow');
+  }
+  const newarrivals=()=>{
+    navigate('/newarrivals');
+  }
 
 console.log(authState.user);
   return (
@@ -26,12 +35,13 @@ console.log(authState.user);
             collection. From casual sneakers to elegant heels, find your ideal
             pair today. Shop now!
           </p>
-          <button className="border rounded mt-6 border-black hover:bg-white hover:text-black hover:border-black  text-white bg-black transition duration-300 w-44 h-12">
+          <button onClick={shownow} className="border rounded mt-6 border-black hover:bg-white hover:text-black hover:border-black  text-white bg-black transition duration-300 w-44 h-12">
             Shop Now
           </button>
         </div>
         <div className="flex justify-start items-center absolute right-20 h-full ">
-          <img
+          <img 
+            onClick={newarrivals}
             src="/images/newarrivals.png"
             alt="hero-img"
             className="h-[140%] drop-shadow-2xl cursor-pointer object-contain z-20 rotate-[325deg] hover:scale-105 transition duration-500"

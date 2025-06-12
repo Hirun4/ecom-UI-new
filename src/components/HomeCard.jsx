@@ -2,8 +2,14 @@ import React from "react";
 import { GrDeliver } from "react-icons/gr";
 import { BsCollection } from "react-icons/bs";
 import { BiTimer } from "react-icons/bi";
+import { useNavigate } from "react-router-dom";
 
 function HomeCard() {
+  const navigate = useNavigate();
+  
+    const shownow=()=>{
+      navigate('/shopnow');
+    }
   return (
     <div className="w-full px-9 py-9 flex flex-col gap-16">
       <div className="flex justify-between">
@@ -35,7 +41,7 @@ function HomeCard() {
       </div>
       <div className="flex justify-center">
         {/* Search bar */}
-        <div className=" rounded-full w-[30%] flex overflow-hidden">
+        <div onClick={shownow} className=" rounded-full w-[30%] flex overflow-hidden">
           <input
             type="text"
             className="px-4 py-2 bg-[#CAF0F8] w-full outline-none"

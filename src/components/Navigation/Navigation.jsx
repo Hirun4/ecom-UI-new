@@ -2,7 +2,7 @@ import React, { useContext } from "react";
 import { Wishlist } from "../common/Wishlist";
 import { AccountIcon } from "../common/AccountIcon";
 import { CartIcon } from "../common/CartIcon";
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import "./Navigation.css";
 import { useSelector } from "react-redux";
 import { countCartItems } from "../../store/features/cart";
@@ -14,6 +14,8 @@ const Navigation = ({ variant = "default" }) => {
   const { authState, logout } = useContext(AuthContext);
   const cartLength = useSelector(countCartItems);
   const navigate = useNavigate();
+  const location = useLocation();
+  var currentpath = location.pathname;
 
   const Logout = () => {
     logout();
@@ -32,44 +34,72 @@ const Navigation = ({ variant = "default" }) => {
         {/* Nav items */}
         <ul className="flex gap-14 text-gray-600 ">
           <li>
-            <NavLink
-              to="/"
-              className={({ isActive }) =>
-                `${isActive ? "active-link" : ""} hover:text-black`
-              }
-            >
-              Home
-            </NavLink>
+            {currentpath == "/" ? (
+              <NavLink
+                to="/"
+                className={({ isActive }) =>
+                  `${isActive ? "active-link" : ""} hover:text-black`
+                }
+              >
+                Home
+              </NavLink>
+            ) : (
+              <div></div>
+            )}
           </li>
           <li>
-            <NavLink
-              to="/men"
-              className={({ isActive }) =>
-                `${isActive ? "active-link" : ""} hover:text-black`
-              }
-            >
-              Categories
-            </NavLink>
+            {currentpath == "/" ? (
+              <NavLink
+                onClick={(e) => {
+                  e.preventDefault();
+                  window.scrollTo({
+                    top: document.body.scrollHeight * 0.56,
+                    behavior: "smooth",
+                  });
+                }}
+                className=" hover:text-black"
+              >
+                Categories
+              </NavLink>
+            ) : (
+              <div></div>
+            )}
           </li>
           <li>
-            <NavLink
-              to="/women"
-              className={({ isActive }) =>
-                `${isActive ? "active-link" : ""} hover:text-black`
-              }
-            >
-              About Us
-            </NavLink>
+            {currentpath == "/" ? (
+              <NavLink
+                onClick={(e) => {
+                  e.preventDefault();
+                  window.scrollTo({
+                    top: document.body.scrollHeight * 1,
+                    behavior: "smooth",
+                  });
+                }}
+                className=" hover:text-black"
+              >
+                About Us
+              </NavLink>
+            ) : (
+              <div></div>
+            )}
           </li>
           <li>
-            <NavLink
-              to="/kids"
-              className={({ isActive }) =>
-                `${isActive ? "active-link" : ""} hover:text-black`
-              }
-            >
-              Contact Us
-            </NavLink>
+            {currentpath == "/" ? (
+              <NavLink
+                onClick={(e) => {
+                  e.preventDefault();
+                  window.scrollTo({
+                    top: document.body.scrollHeight * 1,
+                    behavior: "smooth",
+                  });
+                }}
+                className=" hover:text-black"
+              >
+                Contact Us
+              </NavLink>
+            ) : (
+              <div></div>
+            )}
           </li>
         </ul>
       </div>
@@ -81,17 +111,19 @@ const Navigation = ({ variant = "default" }) => {
               <IoCart size={40} />
             </NavLink>
 
-
             <NavLink to="/account-details/profile">
               <IoPersonCircleSharp size={40} />
             </NavLink>
-
-            <NavLink
-              onClick={Logout}
-              className="py-2 px-4 cursor-pointer rounded-full text-white border-2 border-white hover:bg-white hover:text-black transition duration-300"
-            >
-              Logout
-            </NavLink>
+            {currentpath == "/" ? (
+              <NavLink
+                onClick={Logout}
+                className="py-2 px-4 cursor-pointer rounded-full text-white border-2 border-white hover:bg-white hover:text-black transition duration-300"
+              >
+                Logout
+              </NavLink>
+            ) : (
+              <div></div>
+            )}
           </div>
         ) : (
           <NavLink

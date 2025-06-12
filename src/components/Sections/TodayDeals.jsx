@@ -17,7 +17,7 @@ const TodayDeals = () => {
     fetch("http://localhost:8080/api/order1/products")
       .then((res) => res.json())
       .then((data) => {
-        const slicedData = data.slice(0, 8); // Get first 2 products
+        const slicedData = data.slice(0, 8); // Get first 8 products
         setProducts(slicedData);
       })
       .catch((err) => console.error(err));

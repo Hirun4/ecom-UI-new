@@ -19,6 +19,8 @@ const Category = () => {
       })
       .catch((err) => console.error(err));
   }, []);
+  console.log(products);
+  
 
   useEffect(() => {
     const gents = products.filter((product) => product.category === "Gents");

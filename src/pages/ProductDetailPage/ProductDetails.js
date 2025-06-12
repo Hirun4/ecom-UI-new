@@ -267,7 +267,7 @@ const ProductDetails = () => {
                 {isLoading ? "Adding..." : "Add to Cart"}
               </button>
             </div>
-            <div>
+            {/* <div>
               <h1 className="text-lg font-bold text-black">Reviews(3)</h1>
               <div className="flex flex-col gap-3 p-5">
                 <div className="flex flex-col gap-1">
@@ -276,13 +276,12 @@ const ProductDetails = () => {
                     "Lorem ipsum dolor sit amet consectetur adipisicing elit."
                   </p>
                 </div>
-                {/* ... other reviews ... */}
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>
-      <div className="bg-[#CAF0F8] py-3 px-9">
+      <div className="bg-[#CAF0F8] ">
         <Footer />
       </div>
     </>

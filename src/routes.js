@@ -18,6 +18,7 @@ import Profile from "./pages/Account/Profile";
 import Orders from "./pages/Account/Orders";
 import Settings from "./pages/Account/Settings";
 import { AdminPanel } from "./pages/AdminPanel/AdminPanel";
+import NewArrivals from "./pages/ProductListPage/newarrivals";
 
 
 export const router = createBrowserRouter([
@@ -29,17 +30,13 @@ export const router = createBrowserRouter([
             path:"/",
             element:<Shop />
         },
-        // {
-        //   path:"/product",
-
-        // },
         {
-            path:"/women",
-            element:<ProductListPage categoryType={'WOMEN'}/>,
+          path:"/shopnow",
+          element:<ProductListPage />
         },
         {
-          path:"/men",
-          element:<ProductListPage categoryType={'MEN'}/>,
+          path:"/newarrivals",
+          element:<NewArrivals />
         },
         {
           path:"/product",
