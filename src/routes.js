@@ -19,6 +19,7 @@ import Orders from "./pages/Account/Orders";
 import Settings from "./pages/Account/Settings";
 import { AdminPanel } from "./pages/AdminPanel/AdminPanel";
 import NewArrivals from "./pages/ProductListPage/newarrivals";
+import AboutUs from "./pages/Aboutus/AboutUs";
 
 
 export const router = createBrowserRouter([
@@ -33,6 +34,10 @@ export const router = createBrowserRouter([
         {
           path:"/shopnow",
           element:<ProductListPage />
+        },
+        {
+          path:"/about",
+          element:<AboutUs />
         },
         {
           path:"/newarrivals",

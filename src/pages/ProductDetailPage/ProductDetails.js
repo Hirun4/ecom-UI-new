@@ -21,6 +21,10 @@ const ProductDetails = () => {
   const [mainImage, setMainImage] = useState("");
 
   useEffect(() => {
+    window.scrollTo({ top: 0, left: 0 });
+  }, []);
+
+  useEffect(() => {
     fetch(`http://localhost:8080/api/products/${id}`)
       .then((res) => res.json())
       .then((data) => {
@@ -67,6 +71,7 @@ const ProductDetails = () => {
     }
     if (!authState.user) {
       toast.error("Please login to add items to cart");
+      navigate("/v1/login");
       return;
     }
     if (quantity > getAvailableStock()) {

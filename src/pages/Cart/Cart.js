@@ -106,24 +106,18 @@ const Cart = () => {
       selectedItems.includes(item.id)
     );
 
-    // Check stock for each selected item
     try {
       for (const item of selectedCartItems) {
-        // Fetch latest stock for this product and size
         const res = await api.get(`/api/products/${item.product.product_id}`);
         const product = res.data;
-        // Find the stock for the selected size
         const stock = product.stocks.find((s) => s.size === item.size);
         if (!stock || stock.quantity < item.quantity) {
           toast.error(
-            `Not enough stock for "${item.product.name}" (size ${
-              item.size
-            }). Available: ${stock ? stock.quantity : 0}`
+            `Not enough stock for "${item.product.name}" (size ${item.size}). Available: ${stock ? stock.quantity : 0}`
           );
-          return; // Stop checkout if any item is not available
+          return;
         }
       }
-      // All items have enough stock, proceed
       navigate("/place-order", {
         state: {
           items: selectedCartItems,
@@ -135,155 +129,148 @@ const Cart = () => {
     }
   };
 
-  if (loading) return <div>Loading cart...</div>;
+  if (loading) return <div className="flex justify-center items-center min-h-[300px] text-xl text-gray-700">Loading cart...</div>;
 
   return (
     <>
       <div className="bg-[#CAF0F8] py-3 px-9">
         <Navigation />
       </div>
-      <div className="p-4">
-        {error && <div className="text-red-500 p-4">Error: {error}</div>}
-
-        {cartItems.length > 0 ? (
-          <>
-            <div className="flex justify-between items-center p-4">
-              <p className="text-xl text-black">Shopping Bag</p>
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={selectedItems.length === cartItems.length}
-                  onChange={handleSelectAll}
-                  className="w-4 h-4"
-                />
-                <span>Select All</span>
-              </div>
-            </div>
-            <table className="w-full text-lg">
-              <thead className="text-sm bg-black text-white uppercase">
-                <tr>
-                  {headers.map((header, index) => (
-                    <th key={index} scope="col" className="px-6 py-3">
-                      {header}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {cartItems.map((item) => (
-                  <tr key={item.id} className="p-4 bg-white border-b">
-                    <td className="text-center">
-                      <input
-                        type="checkbox"
-                        checked={selectedItems.includes(item.id)}
-                        onChange={() => handleItemSelection(item.id)}
-                        className="w-4 h-4"
-                      />
-                    </td>
-                    <td>
-                      <div className="flex p-4">
-                        <img
-                          src={item.product.image_url}
-                          alt={item.product.name}
-                          className="w-[120px] h-[120px] object-cover"
-                        />
-                        <div className="flex flex-col text-sm px-2 text-gray-600">
-                          <p>{item.product.name}</p>
-                          <p>Size: {item.size}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="text-center text-sm text-gray-600">
-                      ${item.product.price}
-                    </td>
-                    <td className="text-center text-sm text-gray-600">
-                      {item.quantity}
-                    </td>
-                    <td className="text-center text-sm text-gray-600">
-                      {item.size}
-                    </td>
-                    <td className="text-center text-sm text-gray-600">
-                      ${(item.product.price * item.quantity).toFixed(2)}
-                    </td>
-                    <td>
-                      <button
-                        className="flex justify-center items-center w-full"
-                        onClick={() => {
-                          setDeleteItemId(item.id);
-                          setModalIsOpen(true);
-                        }}
-                      >
-                        <DeleteIcon />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            <div className="flex justify-end bg-gray-200 p-8">
-              <div className="mr-20 pr-8">
-                <div className="flex gap-8 text-lg">
-                  <p className="w-[120px]">Selected Total</p>
-                  <p>${calculateSelectedTotal()}</p>
+      <div className="bg-gradient-to-br from-[#f8fafc] to-[#e0f7fa] min-h-screen py-8">
+        <div className="max-w-5xl mx-auto">
+          {error && <div className="text-red-500 p-4 bg-red-50 rounded-xl mb-4">{error}</div>}
+          {cartItems.length > 0 ? (
+            <>
+              <div className="flex justify-between items-center p-6 bg-white rounded-2xl shadow mb-6">
+                <p className="text-2xl font-bold text-gray-900">Shopping Bag</p>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={selectedItems.length === cartItems.length}
+                    onChange={handleSelectAll}
+                    className="w-5 h-5 accent-black rounded border-gray-400"
+                  />
+                  <span className="text-gray-700 font-medium">Select All</span>
                 </div>
-                <button
-                  className={`w-full items-center h-[48px] border rounded-lg mt-2 text-white 
-                                        ${
-                                          selectedItems.length > 0
-                                            ? "bg-black hover:bg-gray-800"
-                                            : "bg-gray-400 cursor-not-allowed"
-                                        }`}
-                  onClick={handleCheckout}
-                  disabled={selectedItems.length === 0}
-                >
-                  Proceed to Checkout ({selectedItems.length} items)
-                </button>
               </div>
-            </div>
-          </>
-        ) : (
-          <div className="w-full items-center text-center">
-            <div className="flex justify-center">
+              <div className="overflow-x-auto bg-white rounded-2xl shadow">
+                <table className="w-full text-base">
+                  <thead className="text-sm bg-black text-white uppercase">
+                    <tr>
+                      {headers.map((header, index) => (
+                        <th key={index} scope="col" className="px-6 py-4 font-semibold text-center">
+                          {header}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {cartItems.map((item) => (
+                      <tr key={item.id} className="bg-white border-b last:border-none hover:bg-gray-50 transition">
+                        <td className="text-center">
+                          <input
+                            type="checkbox"
+                            checked={selectedItems.includes(item.id)}
+                            onChange={() => handleItemSelection(item.id)}
+                            className="w-5 h-5 accent-black rounded border-gray-400"
+                          />
+                        </td>
+                        <td>
+                          <div className="flex items-center gap-4 p-2">
+                            <img
+                              src={item.product.image_url}
+                              alt={item.product.name}
+                              className="w-20 h-20 object-cover rounded-xl border"
+                            />
+                            <div className="flex flex-col text-base text-gray-900">
+                              <span className="font-semibold">{item.product.name}</span>
+                              <span className="text-gray-500 text-sm">Size: {item.size}</span>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="text-center text-gray-700 font-medium">
+                          ${item.product.price}
+                        </td>
+                        <td className="text-center text-gray-700">{item.quantity}</td>
+                        <td className="text-center text-gray-700">{item.size}</td>
+                        <td className="text-center text-gray-900 font-bold">
+                          ${(item.product.price * item.quantity).toFixed(2)}
+                        </td>
+                        <td className="text-center">
+                          <button
+                            className="flex justify-center items-center w-full hover:text-red-600 transition"
+                            onClick={() => {
+                              setDeleteItemId(item.id);
+                              setModalIsOpen(true);
+                            }}
+                          >
+                            <DeleteIcon />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="flex justify-end mt-8">
+                <div className="bg-white rounded-2xl shadow p-8 w-full max-w-sm">
+                  <div className="flex justify-between items-center mb-4 text-lg">
+                    <span className="font-semibold text-gray-700">Selected Total</span>
+                    <span className="font-bold text-xl text-black">${calculateSelectedTotal()}</span>
+                  </div>
+                  <button
+                    className={`w-full h-[48px] rounded-xl font-semibold text-lg transition ${
+                      selectedItems.length > 0
+                        ? "bg-black text-white hover:bg-gray-900"
+                        : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                    }`}
+                    onClick={handleCheckout}
+                    disabled={selectedItems.length === 0}
+                  >
+                    Proceed to Checkout ({selectedItems.length} items)
+                  </button>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="w-full flex flex-col items-center justify-center py-16">
               <img
                 src={EmptyCart}
-                className="w-[240px] h-[240px]"
+                className="w-52 h-52 mb-6"
                 alt="empty-cart"
               />
-            </div>
-            <p className="text-3xl font-bold">Your cart is empty</p>
-            <div className="p-4">
+              <p className="text-3xl font-bold text-gray-700 mb-4">Your cart is empty</p>
               <Link
                 to="/"
-                className="w-full p-2 items-center h-[48px] bg-black border rounded-lg mt-2 text-white hover:bg-gray-800"
+                className="inline-block px-8 py-3 bg-black text-white rounded-xl font-semibold hover:bg-gray-900 transition"
               >
                 Continue Shopping
               </Link>
             </div>
-          </div>
-        )}
-
-        <Modal
-          isOpen={modalIsOpen}
-          onRequestClose={() => setModalIsOpen(false)}
-          style={customStyles}
-          contentLabel="Remove Item"
-        >
-          <p>Are you sure you want to remove this item?</p>
-          <div className="flex justify-between p-4">
-            <button className="h-[48px]" onClick={() => setModalIsOpen(false)}>
-              Cancel
-            </button>
-            <button
-              className="bg-black text-white w-[80px] h-[48px] border rounded-lg"
-              onClick={handleDeleteItem}
-            >
-              Remove
-            </button>
-          </div>
-        </Modal>
-      </div>
-      <div className="bg-[#CAF0F8]">
-        <Footer />
+          )}
+          <Modal
+            isOpen={modalIsOpen}
+            onRequestClose={() => setModalIsOpen(false)}
+            style={customStyles}
+            contentLabel="Remove Item"
+          >
+            <p className="text-lg font-semibold mb-6">Are you sure you want to remove this item?</p>
+            <div className="flex justify-end gap-4">
+              <button
+                className="h-[48px] px-6 border-2 border-gray-300 rounded-xl font-semibold bg-white hover:bg-gray-100 transition"
+                onClick={() => setModalIsOpen(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="bg-black text-white w-[100px] h-[48px] rounded-xl font-semibold hover:bg-gray-900 transition"
+                onClick={handleDeleteItem}
+              >
+                Remove
+              </button>
+            </div>
+          </Modal>
+        </div>
       </div>
     </>
   );
