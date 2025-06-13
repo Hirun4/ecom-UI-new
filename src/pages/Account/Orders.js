@@ -83,6 +83,19 @@ const Orders = () => {
 
   const filteredOrders = orders.filter(order => order?.orderStatus === selectedFilter);
 
+  // Helper to check if order is within 24 hours
+  const canCancelOrder = (orderDate) => {
+    if (!orderDate) return false;
+    const now = Date.now();
+    const created = new Date(orderDate).getTime();
+    return (now - created) <= 24 * 60 * 60 * 1000; // 24 hours in ms
+  };
+
+  // Toggle details view
+  const handleToggleDetails = (orderId) => {
+    setSelectedOrder(prev => (prev === orderId ? '' : orderId));
+  };
+
   return (
     <div className='p-4'>
       <div className='md:w-[70%] w-full'>
@@ -96,7 +109,6 @@ const Orders = () => {
             <option value='PENDING'>Pending</option>
             <option value='Shipped'>Shipped</option>
             <option value='Delivered'>Delivered</option>
-            
           </select>
         </div>
         {filteredOrders.length > 0 ? (
@@ -119,7 +131,7 @@ const Orders = () => {
                     <p>Status: {order?.orderStatus}</p>
                   </div>
                   <button
-                    onClick={() => setSelectedOrder(order?.id)}
+                    onClick={() => handleToggleDetails(order?.id)}
                     className='text-blue-900 underline'
                   >
                     {selectedOrder === order?.id ? 'Hide Details' : 'View Details'}
@@ -149,14 +161,16 @@ const Orders = () => {
                       <p className='text-gray-600'>Delivery Fee: ${order?.deliveryFee}</p>
                       <p className='font-bold text-lg'>Total: ${order?.totalAmount}</p>
                     </div>
-                    {order?.orderStatus !== 'CANCELLED' && getStepCount[order?.orderStatus] <= 2 && (
-                      <button
-                        onClick={() => onCancelOrder(order.id)}
-                        className='bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700'
-                      >
-                        Cancel Order
-                      </button>
-                    )}
+                    {order?.orderStatus !== 'CANCELLED' &&
+                      getStepCount[order?.orderStatus] <= 2 &&
+                      canCancelOrder(order?.orderDate) && (
+                        <button
+                          onClick={() => onCancelOrder(order.id)}
+                          className='bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700'
+                        >
+                          Cancel Order
+                        </button>
+                      )}
                   </div>
                 </div>
               )}
@@ -166,8 +180,7 @@ const Orders = () => {
           <p className='text-center text-gray-500 mt-4'>No orders found</p>
         )}
       </div>
-</div>
-
+    </div>
   );
 };
 
