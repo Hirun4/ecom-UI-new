@@ -115,12 +115,14 @@ const Profile = ({ onCancel }) => {
             <div>
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-gray-800">Addresses</h3>
-                <button
-                  className="px-3 py-1 text-green-700 bg-green-100 rounded-full hover:bg-green-200 transition"
-                  onClick={() => setAddAddress(true)}
-                >
-                  Add New
-                </button>
+                {userInfo?.addressList?.length === 0 && (
+                  <button
+                    className="px-3 py-1 text-green-700 bg-green-100 rounded-full hover:bg-green-200 transition"
+                    onClick={() => setAddAddress(true)}
+                  >
+                    Add New
+                  </button>
+                )}
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {userInfo?.addressList?.length === 0 && (

@@ -6,19 +6,40 @@ import { toast } from "react-toastify";
 import Navigation from "../../components/Navigation/Navigation";
 
 const WHATSAPP_NUMBER = "0729827098";
+const DELIVERY_FEE = 400.0;
 
 const PlaceOrder = () => {
   const { authState } = useContext(AuthContext);
-  const userInfo = authState.user;
   const location = useLocation();
   const navigate = useNavigate();
   const { items, total } = location.state || { items: [], total: 0 };
 
+  const [userInfo, setUserInfo] = useState(authState.user);
   const [paymentMethod, setPaymentMethod] = useState("CASH_ON_DELIVERY");
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [useExistingPromo, setUseExistingPromo] = useState(false);
   const [existingPromoPrice, setExistingPromoPrice] = useState(0);
+
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      if (!authState.token) return;
+      try {
+        const res = await axios.get(
+          "http://localhost:8080/api/user/profile",
+          {
+            headers: {
+              Authorization: `Bearer ${authState.token}`,
+            },
+          }
+        );
+        setUserInfo(res.data);
+      } catch (err) {
+        setUserInfo(authState.user);
+      }
+    };
+    fetchUserInfo();
+  }, [authState.token, authState.user]);
 
   const addressObj = userInfo?.addressList?.[0];
   const addressString = addressObj
@@ -26,7 +47,6 @@ const PlaceOrder = () => {
     : "";
   const district = addressObj?.city || "";
 
-  // Fetch all previous promo prices for this user
   useEffect(() => {
     const fetchExistingPromo = async () => {
       if (!userInfo?.phoneNumber) return;
@@ -54,35 +74,37 @@ const PlaceOrder = () => {
     fetchExistingPromo();
   }, [userInfo?.phoneNumber]);
 
-  // Calculate current promo price (subtotal * 0.02)
   const getCurrentPromoPrice = () => {
     return Math.round(Number(total) * 0.02);
   };
 
-  // Place order logic (correct promo logic + deduct existing promo from one item)
+  // Calculate the total to display
+  const displayTotal =
+    useExistingPromo && existingPromoPrice > 0
+      ? Math.max(0, Number(total) + DELIVERY_FEE - existingPromoPrice)
+      : Number(total) + DELIVERY_FEE;
+
   const handlePlaceOrder = async (e) => {
     e.preventDefault();
     setError(null);
     setSubmitting(true);
     try {
-      // 1. If user uses existing promo, clear all previous promo prices in backend
       if (useExistingPromo && existingPromoPrice > 0) {
         await axios.put(
           `http://localhost:8080/api/order1/clear-promo/${userInfo.phoneNumber}`
         );
       }
 
-      // 2. Always save current promo price to the first item (for future use)
       const currentPromoPrice = getCurrentPromoPrice();
       const orderItems = items.map((item, idx) => {
         let promo_price = 0;
         let final_price = Number(item.product.price) * item.quantity;
         if (idx === 0) {
           promo_price = currentPromoPrice;
-          // Deduct existing promo from first item if using existing promo
           if (useExistingPromo && existingPromoPrice > 0) {
             final_price = Math.max(0, final_price - existingPromoPrice);
           }
+          final_price += DELIVERY_FEE;
         }
         return {
           product_id: item.product.product_id,
@@ -106,7 +128,7 @@ const PlaceOrder = () => {
         address: addressString,
         phone_number: userInfo?.phoneNumber,
         district: district,
-        delivery_fee: 0,
+        delivery_fee: DELIVERY_FEE,
         orderItems,
       };
 
@@ -115,9 +137,8 @@ const PlaceOrder = () => {
         orderRequest
       );
 
-      // Remove ordered items from cart
-      const userIdentifier = authState.user?.id
-        ? `0x${authState.user.id.replace(/-/g, "")}`
+      const userIdentifier = userInfo?.id
+        ? `0x${userInfo.id.replace(/-/g, "")}`
         : "user123";
 
       for (const item of items) {
@@ -125,9 +146,7 @@ const PlaceOrder = () => {
           await axios.delete(
             `http://localhost:8080/api/cart/${userIdentifier}/items/${item.id}`
           );
-        } catch (err) {
-          // Optionally handle error (e.g., log or show a toast)
-        }
+        } catch (err) {}
       }
 
       toast.success("Order placed!");
@@ -145,6 +164,12 @@ const PlaceOrder = () => {
     );
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${message}`, "_blank");
   };
+
+  const handleAddAddress = () => {
+    navigate("/account-details/profile");
+  };
+
+  const hasAddress = userInfo?.addressList && userInfo.addressList.length > 0;
 
   return (
     <>
@@ -195,7 +220,7 @@ const PlaceOrder = () => {
             <h3 style={{ fontSize: 20, fontWeight: 600, marginBottom: 12 }}>
               Address
             </h3>
-            {userInfo?.addressList?.length ? (
+            {hasAddress ? (
               userInfo.addressList.map((address, idx) => (
                 <div
                   key={idx}
@@ -233,6 +258,7 @@ const PlaceOrder = () => {
                   value="CASH_ON_DELIVERY"
                   checked={paymentMethod === "CASH_ON_DELIVERY"}
                   onChange={() => setPaymentMethod("CASH_ON_DELIVERY")}
+                  disabled={!hasAddress}
                 />
                 Cash on Delivery
               </label>
@@ -242,11 +268,12 @@ const PlaceOrder = () => {
                   value="BANK_TRANSFER"
                   checked={paymentMethod === "BANK_TRANSFER"}
                   onChange={() => setPaymentMethod("BANK_TRANSFER")}
+                  disabled={!hasAddress}
                 />
                 Bank Transfer
               </label>
             </div>
-            {paymentMethod === "BANK_TRANSFER" && (
+            {paymentMethod === "BANK_TRANSFER" && hasAddress && (
               <div style={{ marginTop: 16 }}>
                 <button
                   type="button"
@@ -286,7 +313,7 @@ const PlaceOrder = () => {
                   type="checkbox"
                   checked={useExistingPromo}
                   onChange={(e) => setUseExistingPromo(e.target.checked)}
-                  disabled={existingPromoPrice <= 0}
+                  disabled={existingPromoPrice <= 0 || !hasAddress}
                   style={{ marginRight: 8 }}
                 />
                 Use existing promo price (Total: ${existingPromoPrice})
@@ -309,31 +336,63 @@ const PlaceOrder = () => {
                 </li>
               ))}
             </ul>
-            <div style={{ fontWeight: 700, fontSize: 20, marginBottom: 16 }}>
+            <div style={{ fontWeight: 700, fontSize: 20, marginBottom: 8 }}>
               Subtotal: ${total}
+            </div>
+            <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 8 }}>
+              Delivery Fee: ${DELIVERY_FEE.toFixed(2)}
+            </div>
+            <div style={{ fontWeight: 700, fontSize: 22, marginBottom: 16 }}>
+              Total: ${displayTotal.toFixed(2)}
+              {useExistingPromo && existingPromoPrice > 0 && (
+                <span style={{ color: "#009688", fontSize: 14, marginLeft: 8 }}>
+                  (Promo applied: -${existingPromoPrice})
+                </span>
+              )}
             </div>
           </section>
           {error && (
             <div style={{ color: "red", marginBottom: 16 }}>{error}</div>
           )}
-          <button
-            type="submit"
-            disabled={submitting}
-            style={{
-              width: "100%",
-              padding: 14,
-              background: submitting ? "#ccc" : "#222",
-              color: "#fff",
-              border: "none",
-              borderRadius: 6,
-              fontSize: 18,
-              fontWeight: 600,
-              cursor: submitting ? "not-allowed" : "pointer",
-              marginTop: 12,
-            }}
-          >
-            {submitting ? "Placing Order..." : "Place Order"}
-          </button>
+          {hasAddress ? (
+            <button
+              type="submit"
+              disabled={submitting}
+              style={{
+                width: "100%",
+                padding: 14,
+                background: submitting ? "#ccc" : "#222",
+                color: "#fff",
+                border: "none",
+                borderRadius: 6,
+                fontSize: 18,
+                fontWeight: 600,
+                cursor: submitting ? "not-allowed" : "pointer",
+                marginTop: 12,
+              }}
+            >
+              {submitting ? "Placing Order..." : "Place Order"}
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={handleAddAddress}
+              style={{
+                width: "100%",
+                padding: 14,
+                background: "#0077b6",
+                color: "#fff",
+                border: "none",
+                borderRadius: 6,
+                fontSize: 18,
+                fontWeight: 600,
+                cursor: "pointer",
+                marginTop: 12,
+              }}
+            >
+              Add Address to Place the Order
+            </button>
+          )}
         </form>
       </div>
     </>
