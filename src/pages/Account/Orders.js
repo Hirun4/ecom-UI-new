@@ -38,7 +38,7 @@ const Orders = () => {
               quantity: orderItem?.quantity,
               url: orderItem?.products?.[0]?.image_url,
             })) || [],
-            totalAmount: order?.orderItems?.reduce((sum, item) => sum + (item.selling_price * item.quantity), 0) || 0,
+            totalAmount: order?.orderItems?.reduce((sum, item) => sum + (item.final_price), 0) || 0,
             customerName: order?.customer_name,
             trackingNumber: order?.tracking_number,
             deliveryFee: order?.delivery_fee,
