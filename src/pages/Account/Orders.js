@@ -5,8 +5,11 @@ import { cancelOrderAPI, fetchOrderAPI } from '../../api/userInfo';
 import { selectUserInfo } from '../../store/features/user';
 import moment from 'moment';
 import { toast } from 'react-toastify';
-
 import { getStepCount } from '../../utils/order-util';
+import axios from 'axios';
+
+const CLOUDINARY_UPLOAD_PRESET = 'ASSETS';
+const CLOUDINARY_CLOUD_NAME = 'duzjnk48v';
 
 const Orders = () => {
   const userInfo = useSelector(selectUserInfo);
@@ -17,6 +20,16 @@ const Orders = () => {
   });
   const [orders, setOrders] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState('');
+  const [showRefundForm, setShowRefundForm] = useState(false);
+  const [refundForm, setRefundForm] = useState({
+    reason: '',
+    bankAccountNumber: '',
+    bankBranch: '',
+    bankName: '',
+  });
+  const [refundOrder, setRefundOrder] = useState(null);
+  const [refundImages, setRefundImages] = useState([]);
+  const [uploading, setUploading] = useState(false);
 
   const fetchOrders = useCallback(() => {
     if (!userInfo?.phoneNumber) return;
@@ -37,12 +50,15 @@ const Orders = () => {
               price: orderItem?.selling_price,
               quantity: orderItem?.quantity,
               url: orderItem?.products?.[0]?.image_url,
+              finalPrice: orderItem?.final_price,
             })) || [],
             totalAmount: order?.orderItems?.reduce((sum, item) => sum + (item.final_price), 0) || 0,
+            refundAmount: order?.orderItems?.reduce((sum, item) => sum + (item.selling_price * item.quantity), 0) || 0,
             customerName: order?.customer_name,
             trackingNumber: order?.tracking_number,
             deliveryFee: order?.delivery_fee,
-            address: order?.address
+            address: order?.address,
+            refundRequests: order?.refundRequests || [],
           }));
           setOrders(displayOrders);
         }
@@ -81,19 +97,93 @@ const Orders = () => {
       });
   }, [dispatch, fetchOrders]);
 
+  // Filter logic: status is string, so match as is
   const filteredOrders = orders.filter(order => order?.orderStatus === selectedFilter);
 
-  // Helper to check if order is within 24 hours
   const canCancelOrder = (orderDate) => {
     if (!orderDate) return false;
     const now = Date.now();
     const created = new Date(orderDate).getTime();
-    return (now - created) <= 24 * 60 * 60 * 1000; // 24 hours in ms
+    return (now - created) <= 24 * 60 * 60 * 1000;
   };
 
-  // Toggle details view
   const handleToggleDetails = (orderId) => {
     setSelectedOrder(prev => (prev === orderId ? '' : orderId));
+    setShowRefundForm(false);
+    setRefundOrder(null);
+    setRefundImages([]);
+  };
+
+  const handleRefundClick = (order) => {
+    setShowRefundForm(true);
+    setRefundOrder(order);
+    setRefundForm({
+      reason: '',
+      bankAccountNumber: '',
+      bankBranch: '',
+      bankName: '',
+    });
+    setRefundImages([]);
+  };
+
+  const handleRefundFormChange = (e) => {
+    setRefundForm({ ...refundForm, [e.target.name]: e.target.value });
+  };
+
+  const handleImageChange = (e) => {
+    const files = Array.from(e.target.files).slice(0, 4);
+    setRefundImages(files);
+  };
+
+  const uploadImagesToCloudinary = async (images) => {
+    const urls = [];
+    for (const image of images) {
+      const formData = new FormData();
+      formData.append('file', image);
+      formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+      formData.append('cloud_name', CLOUDINARY_CLOUD_NAME);
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.secure_url) urls.push(data.secure_url);
+    }
+    return urls;
+  };
+
+  const handleRefundSubmit = async (e) => {
+    e.preventDefault();
+    if (!refundOrder) return;
+    setUploading(true);
+    try {
+      let imageUrls = [];
+      if (refundImages.length > 0) {
+        imageUrls = await uploadImagesToCloudinary(refundImages);
+      }
+      const payload = {
+        orderId: refundOrder.id,
+        reason: refundForm.reason,
+        bankAccountNumber: refundForm.bankAccountNumber,
+        bankBranch: refundForm.bankBranch,
+        bankName: refundForm.bankName,
+        refundAmount: refundOrder.refundAmount,
+        imageUrls,
+      };
+      console.log('Submitting refund request payload:', payload);
+      const response = await axios.post('http://localhost:8080/api/refund-requests', payload);
+      console.log('Refund request response:', response.data);
+      toast.success('Refund request submitted!');
+      setShowRefundForm(false);
+      setRefundOrder(null);
+      setRefundImages([]);
+      fetchOrders();
+    } catch (err) {
+      console.error('Refund request error:', err);
+      toast.error('Failed to submit refund request');
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (
@@ -171,7 +261,122 @@ const Orders = () => {
                           Cancel Order
                         </button>
                       )}
+                    {order?.orderStatus === 'Delivered' && !showRefundForm && (
+                      <button
+                        onClick={() => handleRefundClick(order)}
+                        className='bg-yellow-500 text-white px-6 py-2 rounded-lg hover:bg-yellow-600 ml-4'
+                      >
+                        Request Refund
+                      </button>
+                    )}
                   </div>
+                  {showRefundForm && refundOrder?.id === order.id && (
+                    <form className='mt-6 p-4 border rounded bg-gray-50' onSubmit={handleRefundSubmit}>
+                      <h3 className='text-lg font-bold mb-4'>Refund Request</h3>
+                      <div className='mb-3'>
+                        <label className='block mb-1 font-medium'>Refund Reason</label>
+                        <input
+                          type='text'
+                          name='reason'
+                          value={refundForm.reason}
+                          onChange={handleRefundFormChange}
+                          required
+                          className='w-full border rounded p-2'
+                        />
+                      </div>
+                      <div className='mb-3'>
+                        <label className='block mb-1 font-medium'>Bank Account Number</label>
+                        <input
+                          type='text'
+                          name='bankAccountNumber'
+                          value={refundForm.bankAccountNumber}
+                          onChange={handleRefundFormChange}
+                          required
+                          className='w-full border rounded p-2'
+                        />
+                      </div>
+                      <div className='mb-3'>
+                        <label className='block mb-1 font-medium'>Bank Branch</label>
+                        <input
+                          type='text'
+                          name='bankBranch'
+                          value={refundForm.bankBranch}
+                          onChange={handleRefundFormChange}
+                          required
+                          className='w-full border rounded p-2'
+                        />
+                      </div>
+                      <div className='mb-3'>
+                        <label className='block mb-1 font-medium'>Bank Name</label>
+                        <input
+                          type='text'
+                          name='bankName'
+                          value={refundForm.bankName}
+                          onChange={handleRefundFormChange}
+                          required
+                          className='w-full border rounded p-2'
+                        />
+                      </div>
+                      <div className='mb-3'>
+                        <label className='block mb-1 font-medium'>Refund Amount</label>
+                        <input
+                          type='text'
+                          value={`$${refundOrder.refundAmount}`}
+                          readOnly
+                          className='w-full border rounded p-2 bg-gray-100'
+                        />
+                      </div>
+                      <div className='mb-3'>
+                        <label className='block mb-1 font-medium'>Upload Images (max 4)</label>
+                        <input
+                          type='file'
+                          accept='image/*'
+                          multiple
+                          onChange={handleImageChange}
+                          disabled={uploading}
+                        />
+                        <div className='flex gap-2 mt-2'>
+                          {refundImages.length > 0 && Array.from(refundImages).map((img, idx) => (
+                            <img
+                              key={idx}
+                              src={URL.createObjectURL(img)}
+                              alt='preview'
+                              className='w-16 h-16 object-cover rounded'
+                            />
+                          ))}
+                        </div>
+                      </div>
+                      <button
+                        type='submit'
+                        className='bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700'
+                        disabled={uploading}
+                      >
+                        {uploading ? 'Submitting...' : 'Approve Refund'}
+                      </button>
+                    </form>
+                  )}
+                  {order.refundRequests && order.refundRequests.length > 0 && (
+                    <div className='mt-4'>
+                      <h4 className='font-bold mb-2'>Refund Requests</h4>
+                      {order.refundRequests.map((req, idx) => (
+                        <div key={idx} className='mb-2 p-2 border rounded bg-gray-100'>
+                          <div className='mb-1 text-sm'>Status: {req.status}</div>
+                          <div className='mb-1 text-sm'>Reason: {req.reason}</div>
+                          <div className='mb-1 text-sm'>Amount: ${req.refundAmount}</div>
+                          <div className='flex gap-2 mt-1'>
+                            {req.imageUrls && req.imageUrls.map((url, i) => (
+                              <img
+                                key={i}
+                                src={url}
+                                alt='refund'
+                                className='w-16 h-16 object-cover rounded'
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
