@@ -179,7 +179,7 @@ const ProductDetails = () => {
           <div className="flex flex-col gap-5 w-1/2 px-10">
             <div>
               <h1 className="text-3xl font-bold text-black">{product.name}</h1>
-              <p className="text-gray-500 text-sm font-light">category</p>
+              <p className="text-gray-500 text-sm font-light">{product.category}</p>
             </div>
             <p className="text-black text-sm w-[350px] font-light">
               {product.description ||

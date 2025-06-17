@@ -13,6 +13,7 @@ export const placeOrderAPI = async (data)=>{
     }
     catch(err){
         throw new Error(err);
+        
     }
 }
 
