@@ -11,6 +11,7 @@
     "@testing-library/user-event": "^13.5.0",
     "axios": "^1.7.7",
     "date-fns": "^4.1.0",
+    "google-map-react": "^2.2.5",
     "lodash": "^4.17.21",
     "lottie-react": "^2.4.1",
     "moment": "^2.30.1",

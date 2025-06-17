@@ -1,21 +1,36 @@
-import React, { useContext } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import HeroImg from "../../assets/img/hero-img.png";
 import Navigation from "../Navigation/Navigation";
 import { AuthContext } from "../../context/authContext";
 import { useNavigate } from "react-router-dom";
 
 const HeroSection = () => {
-  const {authState}=useContext(AuthContext);
+  const { authState } = useContext(AuthContext);
   const navigate = useNavigate();
 
-  const shownow=()=>{
-    navigate('/shopnow');
-  }
-  const newarrivals=()=>{
-    navigate('/newarrivals');
-  }
+  const imageLinks = [
+    "/images/1.png",
+    "/images/2.png",
+    "/images/3.png"
+  ];
 
-console.log(authState.user);
+  const [currentImage, setCurrentImage] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImage((prevIndex) => (prevIndex + 1) % imageLinks.length);
+    }, 3000); // 3 seconds
+
+    return () => clearInterval(interval);
+  }, [imageLinks.length]);
+
+  const shownow = () => {
+    navigate('/shopnow');
+  };
+  const newarrivals = () => {
+    navigate('/newarrivals');
+  };
+
   return (
     <div className="w-full h-screen bg-white relative ">
       {/* Navigation at the top */}
@@ -39,12 +54,12 @@ console.log(authState.user);
             Shop Now
           </button>
         </div>
-        <div className="flex justify-start items-center absolute right-20 h-full ">
+        <div className="flex justify-start items-center absolute right-28 h-full ">
           <img 
             onClick={newarrivals}
-            src="/images/newarrivals.png"
+            src={imageLinks[currentImage]}
             alt="hero-img"
-            className="h-[140%] drop-shadow-2xl cursor-pointer object-contain z-20 rotate-[325deg] hover:scale-105 transition duration-500"
+            className="h-[60%] drop-shadow-2xl cursor-pointer object-contain z-20 rotate-[335deg] hover:scale-105 transition duration-500"
           />
           <p className="absolute z-10 right-0 text-white text-8xl w-[350px] font-extrabold bottom-[55px]">
             New Arrivals
