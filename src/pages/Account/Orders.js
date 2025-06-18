@@ -8,7 +8,7 @@ import { toast } from 'react-toastify';
 import { getStepCount } from '../../utils/order-util';
 import axios from 'axios';
 
-const CLOUDINARY_UPLOAD_PRESET = 'ASSETS';
+const CLOUDINARY_UPLOAD_PRESET = 'wbe5nvfe';
 const CLOUDINARY_CLOUD_NAME = 'duzjnk48v';
 
 const Orders = () => {

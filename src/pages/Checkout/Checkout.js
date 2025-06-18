@@ -19,7 +19,7 @@ const LockIcon = () => <span role="img" aria-label="Lock">🔒</span>;
 const WhatsAppIcon = () => <span role="img" aria-label="WhatsApp">🟢</span>;
 
 const WHATSAPP_NUMBER = "0729827098";
-const DELIVERY_FEE = 400.0;
+const DELIVERY_FEE = 400.0; 
 
 const ProgressBar = ({ currentStep, totalSteps }) => (
   <div className="mb-6">
