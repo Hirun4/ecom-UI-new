@@ -30,6 +30,7 @@ const Orders = () => {
   const [refundOrder, setRefundOrder] = useState(null);
   const [refundImages, setRefundImages] = useState([]);
   const [uploading, setUploading] = useState(false);
+  const [refundStatuses, setRefundStatuses] = useState({}); // { [refundRequestId]: status }
 
   const fetchOrders = useCallback(() => {
     if (!userInfo?.phoneNumber) return;
@@ -60,6 +61,7 @@ const Orders = () => {
             address: order?.address,
             refundRequests: order?.refundRequests || [],
           }));
+          console.log('Fetched orders:', displayOrders);
           setOrders(displayOrders);
         }
       })
@@ -186,6 +188,50 @@ const Orders = () => {
     }
   };
 
+  // Fetch refund status for a refund request ID
+  const fetchRefundStatus = async (refundRequestId) => {
+    if (!refundRequestId) return;
+    try {
+      const res = await axios.get(`http://localhost:8080/api/refund-requests/${refundRequestId}`);
+      console.log(`Fetched refund status for request ID ${refundRequestId}:`, res.data);
+      setRefundStatuses(prev => ({
+        ...prev,
+        [refundRequestId]: res.data.status
+      }));
+    } catch (err) {
+      console.error(`Error fetching refund status for request ID ${refundRequestId}:`, err);
+      setRefundStatuses(prev => ({
+        ...prev,
+        [refundRequestId]: null
+      }));
+    }
+  };
+
+  useEffect(() => {
+    // Only fetch for delivered orders
+    orders.forEach(order => {
+      if (order.orderStatus === 'Delivered') {
+        axios.get(`http://localhost:8080/api/refund-requests/order/${order.id}`)
+          .then(res => {
+            // Since only one refund request per order, use res.data directly
+            const refundRequest = res.data;
+            setRefundStatuses(prev => ({
+              ...prev,
+              [order.id]: refundRequest?.status || null
+            }));
+            console.log(`Order #${order.id} refund status:`, refundRequest?.status);
+          })
+          .catch(err => {
+            setRefundStatuses(prev => ({
+              ...prev,
+              [order.id]: null
+            }));
+            console.error(`Error fetching refund request for order ${order.id}:`, err);
+          });
+      }
+    });
+  }, [orders]);
+
   return (
     <div className='p-4'>
       <div className='md:w-[70%] w-full'>
@@ -261,14 +307,54 @@ const Orders = () => {
                           Cancel Order
                         </button>
                       )}
-                    {order?.orderStatus === 'Delivered' && !showRefundForm && (
-                      <button
-                        onClick={() => handleRefundClick(order)}
-                        className='bg-yellow-500 text-white px-6 py-2 rounded-lg hover:bg-yellow-600 ml-4'
-                      >
-                        Request Refund
-                      </button>
-                    )}
+                    {order?.orderStatus === 'Delivered' && !showRefundForm && (() => {
+  // Get the latest refund request (assuming refundRequests is sorted by date ascending)
+  const latestRefund = order.refundRequests && order.refundRequests.length > 0
+    ? order.refundRequests[order.refundRequests.length - 1]
+    : null;
+
+  console.log(`Order #${order.id} latestRefund:`, latestRefund);
+
+  const status = refundStatuses[order.id];
+
+  if (status === 'APPROVED') {
+    return (
+      <button
+        className='bg-green-600 text-white px-6 py-2 rounded-lg cursor-default'
+        disabled
+      >
+        Approved
+      </button>
+    );
+  } else if (status === 'REJECTED') {
+    return (
+      <button
+        className='bg-red-600 text-white px-6 py-2 rounded-lg cursor-default'
+        disabled
+      >
+        Rejected
+      </button>
+    );
+  } else if (status === 'PENDING') {
+    return (
+      <button
+        className='bg-yellow-500 text-white px-6 py-2 rounded-lg cursor-default'
+        disabled
+      >
+        Pending
+      </button>
+    );
+  } else {
+    return (
+      <button
+        onClick={() => handleRefundClick(order)}
+        className='bg-yellow-500 text-white px-6 py-2 rounded-lg hover:bg-yellow-600 ml-4'
+      >
+        Request Refund
+      </button>
+    );
+  }
+})()}
                   </div>
                   {showRefundForm && refundOrder?.id === order.id && (
                     <form className='mt-6 p-4 border rounded bg-gray-50' onSubmit={handleRefundSubmit}>
@@ -357,6 +443,7 @@ const Orders = () => {
                   )}
                   {order.refundRequests && order.refundRequests.length > 0 && (
                     <div className='mt-4'>
+                      {console.log(`Order #${order.id} refundRequests:`, order.refundRequests)}
                       <h4 className='font-bold mb-2'>Refund Requests</h4>
                       {order.refundRequests.map((req, idx) => (
                         <div key={idx} className='mb-2 p-2 border rounded bg-gray-100'>
