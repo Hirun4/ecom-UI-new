@@ -42,6 +42,7 @@ const Orders = () => {
             id: order?.order_id,
             orderDate: order?.created_at,
             orderStatus: order?.status,
+            deliveryMethod: order?.delivery_method,
             status: (order?.status === 'PENDING' || order?.status === 'IN_PROGRESS' || order?.status === 'SHIPPED')
                    ? 'ACTIVE'
                    : order?.status === 'DELIVERED' ? 'COMPLETED' : order?.status,
@@ -307,7 +308,7 @@ const Orders = () => {
                           Cancel Order
                         </button>
                       )}
-                    {order?.orderStatus === 'Delivered' && !showRefundForm && (() => {
+                    {order?.orderStatus === 'Delivered' && order?.deliveryMethod === 'Courier' && !showRefundForm && (() => {
   // Get the latest refund request (assuming refundRequests is sorted by date ascending)
   const latestRefund = order.refundRequests && order.refundRequests.length > 0
     ? order.refundRequests[order.refundRequests.length - 1]
