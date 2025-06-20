@@ -18,8 +18,7 @@ const TagIcon = () => <span role="img" aria-label="Promo">🏷️</span>;
 const LockIcon = () => <span role="img" aria-label="Lock">🔒</span>;
 const WhatsAppIcon = () => <span role="img" aria-label="WhatsApp">🟢</span>;
 
-const WHATSAPP_NUMBER = "0729827098";
-const DELIVERY_FEE = 400.0; 
+
 
 const ProgressBar = ({ currentStep, totalSteps }) => (
   <div className="mb-6">
@@ -37,6 +36,8 @@ const ProgressBar = ({ currentStep, totalSteps }) => (
     </div>
   </div>
 );
+const WHATSAPP_NUMBER = "+94729827098";
+const DELIVERY_FEE = 400.0;
 
 const PlaceOrder = () => {
   const { authState } = useContext(AuthContext);
@@ -291,6 +292,12 @@ const PlaceOrder = () => {
                 <div className="text-gray-500 text-xs mt-2">
                   After placing your order, click this button to send your payment slip to us on WhatsApp.
                 </div>
+                <div style={{ color: "#888", fontSize: 13, marginTop: 6 }}>
+                  <strong>Account Number:</strong> 8010687235<br />
+                  <strong>Account Name:</strong> K.A. Iddamalgoda<br />
+                  <strong>Bank:</strong> Commercial Bank<br />
+                  <strong>Branch:</strong> Karapitiya<br />
+                  </div>
               </div>
             )}
           </section>

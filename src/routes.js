@@ -20,6 +20,7 @@ import Settings from "./pages/Account/Settings";
 import { AdminPanel } from "./pages/AdminPanel/AdminPanel";
 import NewArrivals from "./pages/ProductListPage/newarrivals";
 import AboutUs from "./pages/Aboutus/AboutUs";
+import ContactUs from "./pages/Contactus/Contactus";
 
 
 export const router = createBrowserRouter([
@@ -47,10 +48,10 @@ export const router = createBrowserRouter([
           path:"/product",
           element: <ProductDetails />
         },
-        // {
-        //   path:'/contact-us',
-        //   element: <Contactus />
-        // },
+        {
+          path:'/contact-us',
+          element: <ContactUs />
+        },
         {
          path:'/cart-items',
          element: <Cart />

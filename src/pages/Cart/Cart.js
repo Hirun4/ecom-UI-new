@@ -113,7 +113,9 @@ const Cart = () => {
         const stock = product.stocks.find((s) => s.size === item.size);
         if (!stock || stock.quantity < item.quantity) {
           toast.error(
-            `Not enough stock for "${item.product.name}" (size ${item.size}). Available: ${stock ? stock.quantity : 0}`
+            `Not enough stock for "${item.product.name}" (size ${
+              item.size
+            }). Available: ${stock ? stock.quantity : 0}`
           );
           return;
         }
@@ -129,7 +131,36 @@ const Cart = () => {
     }
   };
 
-  if (loading) return <div className="flex justify-center items-center min-h-[300px] text-xl text-gray-700">Loading cart...</div>;
+  const handleQuantityChange = async (cartItemId, delta) => {
+    const item = cartItems.find((i) => i.id === cartItemId);
+    if (!item) return;
+
+    // Fetch latest stock for this product and size
+    const res = await api.get(`/api/products/${item.product.product_id}`);
+    const product = res.data;
+    const stock = product.stocks.find((s) => s.size === item.size);
+
+    let newQty = item.quantity + delta;
+    if (newQty < 1) newQty = 1;
+    if (stock && newQty > stock.quantity) {
+      toast.warning("Not enough stock available");
+      newQty = stock.quantity;
+    }
+
+    // Update quantity in backend (implement your API logic here)
+    await api.put(`/api/cart/${userIdentifier}/items/${cartItemId}`, {
+      quantity: newQty,
+    });
+
+    fetchCartItems();
+  };
+
+  if (loading)
+    return (
+      <div className="flex justify-center items-center min-h-[300px] text-xl text-gray-700">
+        Loading cart...
+      </div>
+    );
 
   return (
     <>
@@ -138,7 +169,11 @@ const Cart = () => {
       </div>
       <div className="bg-gradient-to-br from-[#f8fafc] to-[#e0f7fa] min-h-screen py-8">
         <div className="max-w-5xl mx-auto">
-          {error && <div className="text-red-500 p-4 bg-red-50 rounded-xl mb-4">{error}</div>}
+          {error && (
+            <div className="text-red-500 p-4 bg-red-50 rounded-xl mb-4">
+              {error}
+            </div>
+          )}
           {cartItems.length > 0 ? (
             <>
               <div className="flex justify-between items-center p-6 bg-white rounded-2xl shadow mb-6">
@@ -158,7 +193,11 @@ const Cart = () => {
                   <thead className="text-sm bg-black text-white uppercase">
                     <tr>
                       {headers.map((header, index) => (
-                        <th key={index} scope="col" className="px-6 py-4 font-semibold text-center">
+                        <th
+                          key={index}
+                          scope="col"
+                          className="px-6 py-4 font-semibold text-center"
+                        >
                           {header}
                         </th>
                       ))}
@@ -166,7 +205,10 @@ const Cart = () => {
                   </thead>
                   <tbody>
                     {cartItems.map((item) => (
-                      <tr key={item.id} className="bg-white border-b last:border-none hover:bg-gray-50 transition">
+                      <tr
+                        key={item.id}
+                        className="bg-white border-b last:border-none hover:bg-gray-50 transition"
+                      >
                         <td className="text-center">
                           <input
                             type="checkbox"
@@ -180,19 +222,53 @@ const Cart = () => {
                             <img
                               src={item.product.image_url}
                               alt={item.product.name}
-                              className="w-20 h-20 object-cover rounded-xl border"
+                              className="w-20 h-20 object-cover rounded-xl border cursor-pointer"
+                              onClick={() =>
+                                navigate("/product", {
+                                  state: {
+                                    id: item.product.product_id,
+                                    selectedSize: item.size,
+                                    quantity: item.quantity,
+                                  },
+                                })
+                              }
                             />
                             <div className="flex flex-col text-base text-gray-900">
-                              <span className="font-semibold">{item.product.name}</span>
-                              <span className="text-gray-500 text-sm">Size: {item.size}</span>
+                              <span
+                                className="font-semibold cursor-pointer hover:underline"
+                                onClick={() =>
+                                  navigate("/product", {
+                                    state: {
+                                      id: item.product.product_id,
+                                      selectedSize: item.size,
+                                      quantity: item.quantity,
+                                    },
+                                  })
+                                }
+                              >
+                                {item.product.name}
+                              </span>
+                              <span className="text-gray-500 text-sm">
+                                Size: {item.size}
+                              </span>
                             </div>
                           </div>
                         </td>
                         <td className="text-center text-gray-700 font-medium">
                           ${item.product.price}
                         </td>
-                        <td className="text-center text-gray-700">{item.quantity}</td>
-                        <td className="text-center text-gray-700">{item.size}</td>
+                        <td className="text-center text-gray-700">
+                          <div className="flex items-center justify-center gap-2">
+                            
+                            <span className="text-gray-900 font-semibold">
+                              {item.quantity}
+                            </span>
+                           
+                          </div>
+                        </td>
+                        <td className="text-center text-gray-700">
+                          {item.size}
+                        </td>
                         <td className="text-center text-gray-900 font-bold">
                           ${(item.product.price * item.quantity).toFixed(2)}
                         </td>
@@ -215,8 +291,12 @@ const Cart = () => {
               <div className="flex justify-end mt-8">
                 <div className="bg-white rounded-2xl shadow p-8 w-full max-w-sm">
                   <div className="flex justify-between items-center mb-4 text-lg">
-                    <span className="font-semibold text-gray-700">Selected Total</span>
-                    <span className="font-bold text-xl text-black">${calculateSelectedTotal()}</span>
+                    <span className="font-semibold text-gray-700">
+                      Selected Total
+                    </span>
+                    <span className="font-bold text-xl text-black">
+                      ${calculateSelectedTotal()}
+                    </span>
                   </div>
                   <button
                     className={`w-full h-[48px] rounded-xl font-semibold text-lg transition ${
@@ -239,7 +319,9 @@ const Cart = () => {
                 className="w-52 h-52 mb-6"
                 alt="empty-cart"
               />
-              <p className="text-3xl font-bold text-gray-700 mb-4">Your cart is empty</p>
+              <p className="text-3xl font-bold text-gray-700 mb-4">
+                Your cart is empty
+              </p>
               <Link
                 to="/"
                 className="inline-block px-8 py-3 bg-black text-white rounded-xl font-semibold hover:bg-gray-900 transition"
@@ -254,7 +336,9 @@ const Cart = () => {
             style={customStyles}
             contentLabel="Remove Item"
           >
-            <p className="text-lg font-semibold mb-6">Are you sure you want to remove this item?</p>
+            <p className="text-lg font-semibold mb-6">
+              Are you sure you want to remove this item?
+            </p>
             <div className="flex justify-end gap-4">
               <button
                 className="h-[48px] px-6 border-2 border-gray-300 rounded-xl font-semibold bg-white hover:bg-gray-100 transition"

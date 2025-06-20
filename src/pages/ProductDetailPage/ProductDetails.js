@@ -9,16 +9,20 @@ import Footer from "../../components/Footer/Footer";
 const ProductDetails = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { id } = location.state;
+  const { id, selectedSize, quantity } = location.state || {};
+
   const { authState } = useContext(AuthContext);
 
   const [product, setProduct] = useState([]);
   const [sellsCount, setSellCount] = useState(0);
-  const [selectedSize, setSelectedSize] = useState(null);
   const [stocks, setStocks] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [quantity, setQuantity] = useState(1);
   const [mainImage, setMainImage] = useState("");
+
+  const [selectedSizeState, setSelectedSizeState] = useState(
+    selectedSize || null
+  );
+  const [quantityState, setQuantityState] = useState(quantity || 1);
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0 });
@@ -44,28 +48,28 @@ const ProductDetails = () => {
   }, [id]);
 
   const getAvailableStock = () => {
-    const stockObj = stocks.find((s) => s.size === selectedSize);
+    const stockObj = stocks.find((s) => s.size === selectedSizeState);
     return stockObj ? stockObj.quantity : 0;
   };
 
   const handleClick = (size) => {
-    setSelectedSize(size);
-    setQuantity(1);
+    setSelectedSizeState(size);
+    setQuantityState(1);
   };
 
   const handleQuantityChange = (delta) => {
     const available = getAvailableStock();
-    let newQty = quantity + delta;
+    let newQty = quantityState + delta;
     if (newQty < 1) newQty = 1;
     if (newQty > available) {
       toast.warning("Stock doesn't have enough quantity");
       newQty = available;
     }
-    setQuantity(newQty);
+    setQuantityState(newQty);
   };
 
   const handleAddToCart = async () => {
-    if (!selectedSize) {
+    if (!selectedSizeState) {
       toast.warning("Please select a size");
       return;
     }
@@ -74,7 +78,7 @@ const ProductDetails = () => {
       navigate("/v1/login");
       return;
     }
-    if (quantity > getAvailableStock()) {
+    if (quantityState > getAvailableStock()) {
       toast.warning("Stock doesn't have enough quantity");
       return;
     }
@@ -84,8 +88,8 @@ const ProductDetails = () => {
     const userIdentifier = `0x${authState.user.id.replace(/-/g, "")}`;
     const cartItemRequest = {
       productId: id,
-      size: selectedSize,
-      quantity: quantity,
+      size: selectedSizeState,
+      quantity: quantityState,
     };
 
     try {
@@ -104,8 +108,8 @@ const ProductDetails = () => {
       if (!response.ok) throw new Error("Failed to add item to cart");
       await response.json();
       toast.success("Item added to cart successfully!");
-      setSelectedSize(null);
-      setQuantity(1);
+      setSelectedSizeState(null);
+      setQuantityState(1);
     } catch (error) {
       toast.error(error.message || "Failed to add item to cart");
     } finally {
@@ -179,7 +183,9 @@ const ProductDetails = () => {
           <div className="flex flex-col gap-5 w-1/2 px-10">
             <div>
               <h1 className="text-3xl font-bold text-black">{product.name}</h1>
-              <p className="text-gray-500 text-sm font-light">{product.category}</p>
+              <p className="text-gray-500 text-sm font-light">
+                {product.category}
+              </p>
             </div>
             <p className="text-black text-sm w-[350px] font-light">
               {product.description ||
@@ -216,7 +222,7 @@ const ProductDetails = () => {
               <div className="grid grid-cols-5 gap-2 w-[350px]">
                 {stocks.map((stock) => {
                   const isAvailable = stock.quantity > 0;
-                  const isSelected = selectedSize === stock.size;
+                  const isSelected = selectedSizeState === stock.size;
                   return (
                     <button
                       key={stock.stock_id}
@@ -245,15 +251,17 @@ const ProductDetails = () => {
               <button
                 className="px-2 py-1 border rounded disabled:opacity-50"
                 onClick={() => handleQuantityChange(-1)}
-                disabled={quantity <= 1}
+                disabled={quantityState <= 1}
               >
                 -
               </button>
-              <span className="px-3">{quantity}</span>
+              <span className="px-3">{quantityState}</span>
               <button
                 className="px-2 py-1 border rounded disabled:opacity-50"
                 onClick={() => handleQuantityChange(1)}
-                disabled={!selectedSize || quantity >= getAvailableStock()}
+                disabled={
+                  !selectedSizeState || quantityState >= getAvailableStock()
+                }
               >
                 +
               </button>
@@ -261,12 +269,12 @@ const ProductDetails = () => {
             <div className="flex gap-3 mt-4">
               <button
                 className={`border flex items-center justify-center gap-3 rounded-md ${
-                  isLoading || !selectedSize
+                  isLoading || !selectedSizeState
                     ? "bg-gray-300 cursor-not-allowed"
                     : "border-black hover:bg-white hover:text-black hover:border-black text-white bg-black"
                 } transition duration-300 w-44 h-12`}
                 onClick={handleAddToCart}
-                disabled={isLoading || !selectedSize}
+                disabled={isLoading || !selectedSizeState}
               >
                 <MdAddShoppingCart className="text-xl" />
                 {isLoading ? "Adding..." : "Add to Cart"}
