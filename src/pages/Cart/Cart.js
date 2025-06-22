@@ -147,7 +147,7 @@ const Cart = () => {
       newQty = stock.quantity;
     }
 
-    // Update quantity in backend (implement your API logic here)
+    // Update quantity in backend
     await api.put(`/api/cart/${userIdentifier}/items/${cartItemId}`, {
       quantity: newQty,
     });
@@ -259,11 +259,23 @@ const Cart = () => {
                         </td>
                         <td className="text-center text-gray-700">
                           <div className="flex items-center justify-center gap-2">
-                            
+                            <button
+                              className="px-2 py-1 border rounded disabled:opacity-50"
+                              onClick={() => handleQuantityChange(item.id, -1)}
+                              disabled={item.quantity <= 1}
+                            >
+                              -
+                            </button>
                             <span className="text-gray-900 font-semibold">
                               {item.quantity}
                             </span>
-                           
+                            <button
+                              className="px-2 py-1 border rounded disabled:opacity-50"
+                              onClick={() => handleQuantityChange(item.id, 1)}
+                              // Optionally, disable if at max stock
+                            >
+                              +
+                            </button>
                           </div>
                         </td>
                         <td className="text-center text-gray-700">

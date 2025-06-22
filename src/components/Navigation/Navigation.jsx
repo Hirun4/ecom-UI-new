@@ -9,7 +9,7 @@ import { countCartItems } from "../../store/features/cart";
 import { Button } from "react-admin";
 import { AuthContext } from "../../context/authContext";
 import { IoCart, IoPersonCircleSharp } from "react-icons/io5";
-import logoImg from "../../upload/logo.jpeg"; // import logo from uploads folder
+import logoImg from "../../upload/logo.png"; // import logo from uploads folder
 
 const Navigation = ({ variant = "default" }) => {
   const { authState, logout } = useContext(AuthContext);
@@ -42,9 +42,9 @@ const Navigation = ({ variant = "default" }) => {
           />
           <span
             style={{
-              fontFamily: "'Playfair Display', serif",
+              fontFamily: "'Cormorant Garamond', serif",
               fontWeight: 700,
-              fontSize: "1.4rem",
+              fontSize: "1.3rem",
               letterSpacing: "2px",
               color: "#222",
               marginTop: "0.3rem",
@@ -92,23 +92,15 @@ const Navigation = ({ variant = "default" }) => {
             )}
           </li>
           <li>
-            {currentpath == "/" ? (
-              <NavLink
-                onClick={(e) => {
-                  e.preventDefault();
-                  window.scrollTo({
-                    top: document.body.scrollHeight * 1,
-                    behavior: "smooth",
-                  });
-                }}
-                className=" hover:text-black"
-              >
-                About Us
-              </NavLink>
-            ) : (
-              <div></div>
-            )}
-          </li>
+  <NavLink
+    to="/about-us"
+    className={({ isActive }) =>
+      `${isActive ? "active-link" : ""} hover:text-black`
+    }
+  >
+    About Us
+  </NavLink>
+</li>
           <li>
             {currentpath == "/" ? (
               <NavLink

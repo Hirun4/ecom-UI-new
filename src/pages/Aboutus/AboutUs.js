@@ -1,61 +1,94 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import Footer from "../../components/Footer/Footer";
+import Navigation from "../../components/Navigation/Navigation";
 
 const AboutUs = () => {
+  const latitude = 6.06306;
+  const longitude = 80.23484;
+
   return (
-    <div className="bg-gradient-to-br from-[#f8fafc] to-[#e0f7fa] min-h-screen py-12">
-    <div className="max-w-4xl mx-auto bg-white rounded-2xl p-8 md:p-16 shadow-none">
-      <Link
-        to="/"
-        className="inline-block mb-6 px-6 py-2 bg-black text-white rounded-lg font-semibold hover:bg-gray-900 transition"
-      >
-        ← Back to Home
-      </Link>
-        <h1 className="text-4xl font-bold text-gray-900 mb-6 text-center">About ShopEase</h1>
-        <p className="text-lg text-gray-700 mb-6 text-center">
-          ShopEase is dedicated to making online shopping simple, joyful, and accessible for everyone.
-          We believe in quality, transparency, and a customer-first approach.
+    <>
+    <div className="bg-[#CAF0F8] py-3 px-9">
+        <Navigation />
+      </div>
+    <div className="bg-[#F9FAFB] min-h-screen py-16 px-6 sm:px-10 text-gray-800">
+      <div className="max-w-5xl mx-auto text-center">
+        <h1 className="text-5xl font-extrabold text-[#03045E] mb-6">About Us</h1>
+        <p className="text-lg text-gray-700 leading-relaxed mb-12 max-w-3xl mx-auto">
+          Welcome to <strong>CLEONE</strong> – your go-to destination for stylish and high-quality
+          shoes. At CLEONE, we believe footwear is more than fashion – it’s a
+          statement. With a wide range of modern, durable, and comfortable
+          footwear, we are committed to delivering both elegance and performance
+          in every step. Whether you’re walking the streets, hitting the gym, or
+          attending a special occasion, CLEONE has the perfect pair for you.
         </p>
-        <div className="flex flex-col md:flex-row items-center gap-8 mb-8">
-          <img
-            src="https://images.unsplash.com/photo-1515168833906-d2a3b82b302b?auto=format&fit=crop&w=400&q=80"
-            alt="Our Team"
-            className="w-full md:w-1/3 rounded-xl object-cover"
-          />
-          <div>
-            <h2 className="text-2xl font-semibold text-gray-800 mb-2">Our Story</h2>
-            <p className="text-gray-600">
-              Founded in 2023, ShopEase started as a small team passionate about making shopping better.
-              Today, we offer a wide range of products, fast delivery, and friendly support—serving thousands of happy customers.
-            </p>
-          </div>
+      </div>
+
+      <div className="max-w-4xl mx-auto grid md:grid-cols-2 gap-10 items-start">
+        <div className="bg-white shadow-lg rounded-2xl p-8">
+          <h2 className="text-2xl font-semibold text-[#03045E] mb-4">Our Journey</h2>
+          <p className="text-gray-700 leading-7">
+            Our journey began in <strong>September 2023</strong> right from our home in <strong>Galle</strong>. What started as <em>"Cleona"</em> – a venture of reselling and carefully reinvesting every commission – soon grew into building our own stock.
+            <br /><br />
+            With incredible support from my father and brother, we expanded our vision, and along the way, our name evolved to <strong>Cleone</strong>. We transitioned from a home-based business to opening our own shop, and we’re thrilled to be known as Cleone today.
+          </p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center mb-8">
-          <div className="bg-[#CAF0F8] rounded-xl p-6">
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Quality Products</h3>
-            <p className="text-gray-600">We carefully curate every item for quality and value.</p>
-          </div>
-          <div className="bg-[#CAF0F8] rounded-xl p-6">
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Fast Delivery</h3>
-            <p className="text-gray-600">Get your orders quickly, wherever you are.</p>
-          </div>
-          <div className="bg-[#CAF0F8] rounded-xl p-6">
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Customer Care</h3>
-            <p className="text-gray-600">Our support team is here for you 24/7.</p>
-          </div>
-        </div>
-        <div className="text-center">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-2">Contact Us</h2>
-          <p className="text-gray-600 mb-2">Have questions or feedback? We’d love to hear from you!</p>
-          <a
-            href="mailto:support@shopease.com"
-            className="text-blue-700 underline font-medium"
-          >
-            support@shopease.com
-          </a>
+
+        <div className="bg-white shadow-lg rounded-2xl p-8">
+          <h2 className="text-2xl font-semibold text-[#03045E] mb-4">Our Vision</h2>
+          <p className="text-gray-700 leading-7">
+            Our unwavering vision is to deliver the <strong>best quality products</strong> at the <strong>most affordable prices</strong> directly to your hands. 
+            <br /><br />
+            We’re committed to building a brand that not only provides fashion but also builds trust and community.
+          </p>
         </div>
       </div>
+
+      <div className="text-center mt-20">
+        <h2 className="text-3xl font-semibold text-[#03045E] mb-6">Our Location</h2>
+        <div
+          style={{
+            height: "300px",
+            width: "100%",
+            maxWidth: "600px",
+            margin: "0 auto",
+            borderRadius: "16px",
+            overflow: "hidden",
+            boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
+          }}
+        >
+          <iframe
+            title="Google Map"
+            width="100%"
+            height="100%"
+            frameBorder="0"
+            style={{ border: 0 }}
+            allowFullScreen
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+            src={`https://www.google.com/maps?q=${latitude},${longitude}&hl=es;z=14&output=embed`}
+          ></iframe>
+        </div>
+
+        <button
+          onClick={() =>
+            window.open(
+              `https://maps.app.goo.gl/kKoBtW1cxdkwhJHo7`,
+              "_blank"
+            )
+          }
+          className="mt-6 inline-block bg-green-600 text-white px-6 py-3 rounded-full shadow-md font-medium hover:bg-green-700 transition duration-300"
+        >
+          Open in Google Maps
+        </button>
+      </div>
+      
+
     </div>
+      <div className="bg-[#CAF0F8] ">
+        <Footer />
+      </div>
+   </>
   );
 };
 

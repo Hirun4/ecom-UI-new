@@ -34,7 +34,7 @@ function HomeCard() {
           <div>
             <span className="text-lg font-bold">Fast Shipping Service</span>
             <p className="text-gray-500">
-              Get your order delivered in no time!
+              Get your order delivered in on time!
             </p>
           </div>
         </div>

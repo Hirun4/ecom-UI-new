@@ -9,7 +9,7 @@ const Footer = () => {
           <p className='text-[16px] pb-[10px] font-bold'>Contact</p>
           <span className='text-[12px] py-1'>Email: <a href="mailto:cleonafashion2023@gmail.com" className="underline">cleonafashion2023@gmail.com</a></span>
           <span className='text-[12px] py-1'>WhatsApp: <a href="tel:0716700468" className="underline">071 6 700 468</a></span>
-          <span className='text-[12px] py-1'>Contact: <a href="tel:0754446805" className="underline">075 444 6805</a></span>
+          <span className='text-[12px] py-1'>Mobile: <a href="tel:0754446805" className="underline">075 444 6805</a></span>
         </div>
 
         {/* Location */}
@@ -35,7 +35,7 @@ const Footer = () => {
 
         {/* Useful Links */}
         <div className='flex flex-col'>
-          <p className='text-[16px] pb-[10px] font-bold'>Useful Links</p>
+          <p className='text-[16px] pb-[10px] font-bold'>Track Your Order</p>
           <a
             href="https://domex.lk/"
             target="_blank"

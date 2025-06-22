@@ -320,12 +320,17 @@ const Orders = () => {
 
   if (status === 'APPROVED') {
     return (
-      <button
-        className='bg-green-600 text-white px-6 py-2 rounded-lg cursor-default'
-        disabled
-      >
-        Approved
-      </button>
+      <div className='flex flex-col items-end'>
+        <button
+          className='bg-green-600 text-white px-6 py-2 rounded-lg cursor-default mb-2'
+          disabled
+        >
+          Approved
+        </button>
+        <span className='text-green-700 text-sm'>
+          Your refund money will be credited to your bank account soon.
+        </span>
+      </div>
     );
   } else if (status === 'REJECTED') {
     return (
