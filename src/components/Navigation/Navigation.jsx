@@ -9,6 +9,7 @@ import { countCartItems } from "../../store/features/cart";
 import { Button } from "react-admin";
 import { AuthContext } from "../../context/authContext";
 import { IoCart, IoPersonCircleSharp } from "react-icons/io5";
+import logoImg from "../../upload/logo.jpeg"; // import logo from uploads folder
 
 const Navigation = ({ variant = "default" }) => {
   const { authState, logout } = useContext(AuthContext);
@@ -23,10 +24,35 @@ const Navigation = ({ variant = "default" }) => {
 
   return (
     <nav className="flex bg-transparent items-center  justify-between gap-20 ">
-      <div className="flex items-center gap-6">
-        {/* Logo */}
-        <a className="text-3xl text-black font-bold gap-8" href="/">
-          ShopEase
+      <div className="flex items-center gap-3">
+        {/* Logo image and CLEONE in beautiful font */}
+        <a
+          className="flex flex-col items-center group"
+          href="/"
+          style={{ textDecoration: "none" }}
+        >
+          <img
+            src={logoImg}
+            alt="CLEONE Logo"
+            className="w-16 object-contain transition-transform duration-300 group-hover:scale-110 group-hover:brightness-125 group-hover:drop-shadow-bloom"
+            style={{
+              transition: "transform 0.3s, filter 0.3s, box-shadow 0.3s",
+              filter: "brightness(1)",
+            }}
+          />
+          <span
+            style={{
+              fontFamily: "'Playfair Display', serif",
+              fontWeight: 700,
+              fontSize: "1.4rem",
+              letterSpacing: "2px",
+              color: "#222",
+              marginTop: "0.3rem",
+              textAlign: "center",
+            }}
+          >
+            CLEONE
+          </span>
         </a>
       </div>
 
@@ -139,3 +165,9 @@ const Navigation = ({ variant = "default" }) => {
 };
 
 export default Navigation;
+
+/* Add this to Navigation.css or your global CSS for the bloom effect */
+
+// .drop-shadow-bloom {
+//   filter: drop-shadow(0 0 16px #ffe082) drop-shadow(0 0 32px #fffde7);
+// }

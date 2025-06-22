@@ -18,6 +18,7 @@ const Profile = ({ onCancel }) => {
     firstName: "",
     lastName: "",
     phoneNumber: "",
+    phoneNumber2: "",
     email: "",
   });
   const dispatch = useDispatch();
@@ -28,6 +29,7 @@ const Profile = ({ onCancel }) => {
         firstName: userInfo.firstName,
         lastName: userInfo.lastName,
         phoneNumber: userInfo.phoneNumber,
+        phoneNumber2: userInfo.phoneNumber2,
         email: userInfo.email,
       });
     }
@@ -72,6 +74,7 @@ const Profile = ({ onCancel }) => {
           dispatch(updateUserInfo(updatedUser));
           setEditProfile(false);
           onCancel && onCancel();
+          window.location.reload(); // Force reload to refresh profile page
         })
         .catch((err) => {
           console.error("Error updating profile:", err);
@@ -90,7 +93,9 @@ const Profile = ({ onCancel }) => {
         {!addAddress && !editProfile && (
           <div>
             <div className="flex items-center gap-2 mb-6">
-              <h2 className="text-xl font-semibold text-gray-800">Contact Details</h2>
+              <h2 className="text-xl font-semibold text-gray-800">
+                Contact Details
+              </h2>
               <button
                 className="ml-2 px-3 py-1 text-blue-700 bg-blue-100 rounded-full hover:bg-blue-200 transition"
                 onClick={() => setEditProfile(true)}
@@ -105,7 +110,16 @@ const Profile = ({ onCancel }) => {
                   {userInfo?.firstName} {userInfo?.lastName}
                 </p>
                 <p className="text-gray-500 font-medium mb-1">Phone Number</p>
-                <p className="text-lg text-gray-800 mb-4">{userInfo?.phoneNumber ?? "None"}</p>
+                <p className="text-lg text-gray-800 mb-4">
+                  {userInfo?.phoneNumber ?? "None"}
+                </p>
+                <p className="text-gray-500 font-medium mb-1">
+                  Phone Number- 2
+                </p>
+                <p className="text-lg text-gray-800 mb-4">
+                  {userInfo?.phoneNumber2 ?? "None"}
+                </p>
+
                 <p className="text-gray-500 font-medium mb-1">Email</p>
                 <p className="text-lg text-gray-800">{userInfo?.email}</p>
               </div>
@@ -114,7 +128,9 @@ const Profile = ({ onCancel }) => {
             {/* Addresses */}
             <div>
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-800">Addresses</h3>
+                <h3 className="text-lg font-semibold text-gray-800">
+                  Addresses
+                </h3>
                 {userInfo?.addressList?.length === 0 && (
                   <button
                     className="px-3 py-1 text-green-700 bg-green-100 rounded-full hover:bg-green-200 transition"
@@ -126,7 +142,9 @@ const Profile = ({ onCancel }) => {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {userInfo?.addressList?.length === 0 && (
-                  <div className="text-gray-500 italic">No addresses saved.</div>
+                  <div className="text-gray-500 italic">
+                    No addresses saved.
+                  </div>
                 )}
                 {userInfo?.addressList?.map((address, index) => (
                   <div
@@ -134,7 +152,9 @@ const Profile = ({ onCancel }) => {
                     className="bg-gray-50 border border-gray-200 rounded-xl p-5 shadow flex flex-col gap-2"
                   >
                     <div className="flex justify-between items-center">
-                      <span className="font-bold text-gray-800">{address?.name}</span>
+                      <span className="font-bold text-gray-800">
+                        {address?.name}
+                      </span>
                       <div className="flex gap-2">
                         <button
                           onClick={() => onEditAddress(address)}
@@ -165,9 +185,13 @@ const Profile = ({ onCancel }) => {
         {/* Edit Profile Form */}
         {editProfile && (
           <form onSubmit={handleProfileSubmit} className="max-w-xl mx-auto">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Edit Profile</h2>
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">
+              Edit Profile
+            </h2>
             <div className="mb-4">
-              <label className="block text-gray-500 font-medium mb-1">First Name</label>
+              <label className="block text-gray-500 font-medium mb-1">
+                First Name
+              </label>
               <input
                 type="text"
                 name="firstName"
@@ -178,7 +202,9 @@ const Profile = ({ onCancel }) => {
               />
             </div>
             <div className="mb-4">
-              <label className="block text-gray-500 font-medium mb-1">Last Name</label>
+              <label className="block text-gray-500 font-medium mb-1">
+                Last Name
+              </label>
               <input
                 type="text"
                 name="lastName"
@@ -189,7 +215,9 @@ const Profile = ({ onCancel }) => {
               />
             </div>
             <div className="mb-4">
-              <label className="block text-gray-500 font-medium mb-1">Phone Number</label>
+              <label className="block text-gray-500 font-medium mb-1">
+                Phone Number
+              </label>
               <input
                 type="text"
                 name="phoneNumber"
@@ -199,8 +227,23 @@ const Profile = ({ onCancel }) => {
                 required
               />
             </div>
+            <div className="mb-4">
+              <label className="block text-gray-500 font-medium mb-1">
+                Phone Number-2
+              </label>
+              <input
+                type="text"
+                name="phoneNumber2"
+                value={formValues.phoneNumber2}
+                onChange={handleInputChange}
+                className="border border-gray-300 rounded-lg p-3 w-full focus:ring-2 focus:ring-blue-200 outline-none"
+                required
+              />
+            </div>
             <div className="mb-6">
-              <label className="block text-gray-500 font-medium mb-1">Email</label>
+              <label className="block text-gray-500 font-medium mb-1">
+                Email
+              </label>
               <input
                 type="email"
                 name="email"
